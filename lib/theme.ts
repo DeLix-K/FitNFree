@@ -12,7 +12,7 @@ export const colors = {
 
 // Dark palette for the app shell chrome (header/tab bar) and the Dashboard
 // screen. Not yet applied to every screen's own content -- see the
-// FitFlex Roadmap memory notes for the plan to extend this further.
+// FitNFree Roadmap memory notes for the plan to extend this further.
 export const dark = {
   background: '#0a0a0a',
   surface: '#161616',

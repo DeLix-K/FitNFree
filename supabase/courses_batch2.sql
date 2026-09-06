@@ -32,7 +32,7 @@ values
 
 Every session in this course is built from four movement patterns: a squat variation, a push variation, a hip-hinge/posterior-chain variation, and a core/anti-rotation move, plus a short cardio burst to raise heart rate. That repetition is deliberate -- you get measurably better at each movement week over week, which is where the "toning" actually comes from (technique and time-under-tension, not any specific exercise being magic).
 
-Log every session you complete in this course as a workout in your FitFlex history, and let your Streaks tab track the consistency -- that visible chain of completed days is the single best predictor of whether you finish a 14-day program versus abandoning it in week one.
+Log every session you complete in this course as a workout in your FitNFree history, and let your Streaks tab track the consistency -- that visible chain of completed days is the single best predictor of whether you finish a 14-day program versus abandoning it in week one.
 
 A standard note before you start: if you have any existing injury, are pregnant, or have a condition that affects exercise safely, check with a doctor before starting. Stop any movement that causes sharp or radiating pain -- general muscle fatigue and a bit of next-day soreness are normal, joint pain is not.',
   0
@@ -130,7 +130,7 @@ A quick estimate: take your bodyweight in pounds and multiply by 14-16 if you''r
 
 Macros (protein, carbohydrate, and fat) are what those calories are made of, and they matter beyond the raw number. Protein is the one most people under-eat and the one that matters most for keeping muscle while losing fat -- aim for roughly 0.7-1g per pound of bodyweight per day as a starting target. Fat needs a floor too (don''t go below about 0.3g per pound) because it''s essential for hormone production. Whatever calories are left after protein and fat go to carbohydrates, which fuel your training and daily energy.
 
-You do not need to hit these numbers exactly every single day. The goal of this lesson is a real, personalized target to aim at -- not a perfect score to chase. Use FitFlex''s Nutrition tab to log a few normal days and see how close your current eating already is to these numbers before changing anything.',
+You do not need to hit these numbers exactly every single day. The goal of this lesson is a real, personalized target to aim at -- not a perfect score to chase. Use FitNFree''s Nutrition tab to log a few normal days and see how close your current eating already is to these numbers before changing anything.',
   0
 ),
 (
@@ -175,7 +175,7 @@ Eating out doesn''t have to derail the plan. A few practical moves: look at the 
 
 The habit that makes or breaks all of this: consistency beats precision. Hitting your targets approximately right, five or six days a week, for months, will outperform a "perfect" plan you can only sustain for two weeks. If a rule in your nutrition plan is something you can''t imagine still doing in six months, it''s the wrong rule for you specifically, even if it''s correct in theory.
 
-Use FitFlex''s Nutrition tab daily, not as a strict judge, but as a mirror -- logging consistently is what lets you actually see the patterns (a week that''s heavier on takeout, a week that hit targets easily) instead of relying on memory, which is where most people''s sense of their own eating quietly drifts from reality.',
+Use FitNFree''s Nutrition tab daily, not as a strict judge, but as a mirror -- logging consistently is what lets you actually see the patterns (a week that''s heavier on takeout, a week that hit targets easily) instead of relying on memory, which is where most people''s sense of their own eating quietly drifts from reality.',
   3
 )
 on conflict (id) do update set title = excluded.title, content = excluded.content, order_index = excluded.order_index;

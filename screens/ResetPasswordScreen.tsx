@@ -46,7 +46,7 @@ export default function ResetPasswordScreen({ onDone }: { onDone: () => void }) 
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <Text style={styles.title}>FitFlex</Text>
+      <Text style={styles.title}>FitNFree</Text>
       <Text style={styles.subtitle}>Choose a new password</Text>
 
       <TextInput

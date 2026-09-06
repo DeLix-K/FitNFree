@@ -276,7 +276,7 @@ export default function MerchScreen() {
           <View style={styles.headerRow}>
             <View>
               <Text style={styles.title}>Merch</Text>
-              <Text style={styles.subtitle}>Official FitFlex gear, shipped straight to your door.</Text>
+              <Text style={styles.subtitle}>Official FitNFree gear, shipped straight to your door.</Text>
             </View>
             <Pressable style={styles.cartButton} onPress={() => setCartOpen(true)}>
               <Text style={styles.cartButtonText}>🛒 Cart</Text>

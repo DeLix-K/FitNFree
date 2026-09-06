@@ -255,7 +255,7 @@ export function buildCoachSystemPrompt(
     : '';
 
   return (
-    'You are the FitFlex AI Coach, a knowledgeable fitness coach inside a workout app. ' +
+    'You are the FitNFree AI Coach, a knowledgeable fitness coach inside a workout app. ' +
     PERSONALITY_TONE[personality] + '\n\n' +
     "You can see the user's saved workout plans below and should refer to them naturally when relevant " +
     "(e.g. suggesting which saved plan to do today, or noting they haven't built one yet). " +
@@ -283,7 +283,7 @@ export function buildCoachMemoryUpdatePrompt(
   const transcript = recentExchanges.map((e) => `User: ${e.query}\nCoach: ${e.result}`).join('\n\n');
 
   return (
-    'You maintain a compact, durable memory profile for the FitFlex AI Coach about one specific user, built ' +
+    'You maintain a compact, durable memory profile for the FitNFree AI Coach about one specific user, built ' +
     'from their real chat history below. Update the memory notes: keep or add genuinely durable facts ' +
     "(injuries or physical limitations they've mentioned, stated preferences like preferred training time or " +
     'disliked exercises, goals, equipment access, recurring patterns across multiple conversations), and drop ' +
@@ -304,7 +304,7 @@ export function buildDailyBriefingPrompt(
   const facts = buildDailyContextFacts(data);
 
   return (
-    'You are the FitFlex AI Coach writing a short "Daily Briefing" for a user, using ONLY the real data given ' +
+    'You are the FitNFree AI Coach writing a short "Daily Briefing" for a user, using ONLY the real data given ' +
     `below — never invent numbers, scores, or claims this data doesn't support. ${PERSONALITY_TONE[personality]}\n\n` +
     `Today's real data: ${facts}\n\n` +
     "Write 2-4 sentences: acknowledge what the data actually shows (e.g. low sleep, good energy), and give one " +
@@ -335,7 +335,7 @@ export function buildPostWorkoutInsightPrompt(
       : ' No recent sleep data logged.');
 
   return (
-    'You are the FitFlex AI Coach writing a short post-workout insight right after a user logs a session, using ' +
+    'You are the FitNFree AI Coach writing a short post-workout insight right after a user logs a session, using ' +
     `ONLY the real data given below — never invent an exercise, weight, or plateau claim this data doesn't ` +
     `support. ${PERSONALITY_TONE[personality]}\n\n` +
     `Real data: ${facts}\n\n` +
@@ -363,7 +363,7 @@ export function buildSessionRecalibrationPrompt(params: {
     : 'No specific plan is scheduled for today — suggest a sensible session from scratch.';
 
   return (
-    'You are the FitFlex AI Coach. A user wants their session recalibrated right now based on how they actually ' +
+    'You are the FitNFree AI Coach. A user wants their session recalibrated right now based on how they actually ' +
     `feel today. ${PERSONALITY_TONE[personality]}\n\n` +
     `${planLine}\n` +
     `Soreness/limitations: ${params.soreness || 'none mentioned'}.\n` +

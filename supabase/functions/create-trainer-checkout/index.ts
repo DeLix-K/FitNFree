@@ -28,11 +28,11 @@ function buildCorsHeaders(origin: string | null): Record<string, string> {
 }
 
 // The native app opens checkout in an in-app browser and needs Stripe to
-// redirect back to its own fitflex:// deep link (not a normal http(s)
+// redirect back to its own fitnfree:// deep link (not a normal http(s)
 // origin) to close that browser and return control to the app.
 function safeRedirect(url: string | undefined, origin: string | null): string {
   if (url) {
-    if (url.startsWith('fitflex://')) return url;
+    if (url.startsWith('fitnfree://')) return url;
     try {
       if (isAllowedOrigin(new URL(url).origin)) return url;
     } catch {
@@ -148,7 +148,7 @@ Deno.serve(async (req) => {
       success_url: safeRedirect(successUrl, req.headers.get('Origin')),
       cancel_url: safeRedirect(cancelUrl ?? successUrl, req.headers.get('Origin')),
       metadata: {
-        fitflex_order_type: 'trainer_plan',
+        fitnfree_order_type: 'trainer_plan',
         supabase_user_id: user.id,
         trainer_profile_id: trainer.id,
         trainer_user_id: trainer.user_id,

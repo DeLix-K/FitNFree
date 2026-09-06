@@ -163,7 +163,7 @@ Deno.serve(async (req) => {
       case 'checkout.session.completed': {
         const session = event.data.object as Stripe.Checkout.Session;
 
-        if (session.metadata?.fitflex_order_type === 'trainer_plan') {
+        if (session.metadata?.fitnfree_order_type === 'trainer_plan') {
           const { data, error, count } = await adminClient
             .from('trainer_orders')
             .update({
@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
           break;
         }
 
-        if (session.metadata?.fitflex_order_type === 'session_package') {
+        if (session.metadata?.fitnfree_order_type === 'session_package') {
           const { data, error, count } = await adminClient
             .from('trainer_session_credits')
             .update({ status: 'paid' })
@@ -194,7 +194,7 @@ Deno.serve(async (req) => {
           break;
         }
 
-        if (session.metadata?.fitflex_order_type === 'course') {
+        if (session.metadata?.fitnfree_order_type === 'course') {
           const { data, error, count } = await adminClient
             .from('course_enrollments')
             .update({ status: 'paid' })
@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
           break;
         }
 
-        if (session.metadata?.fitflex_order_type === 'digital_product') {
+        if (session.metadata?.fitnfree_order_type === 'digital_product') {
           const { data, error, count } = await adminClient
             .from('digital_product_purchases')
             .update({ status: 'paid' })
@@ -222,7 +222,7 @@ Deno.serve(async (req) => {
           break;
         }
 
-        if (session.metadata?.fitflex_order_type === 'merch') {
+        if (session.metadata?.fitnfree_order_type === 'merch') {
           // Pinned to apiVersion 2024-06-20, so shipping_details is still the
           // flat top-level field — it only moved under collected_information
           // for integrations on the 2025-03-31+ API version.

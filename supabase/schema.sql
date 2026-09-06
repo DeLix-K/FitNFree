@@ -1,4 +1,4 @@
--- FitFlex database schema
+-- FitNFree database schema
 -- Run this in your Supabase project's SQL Editor: Dashboard > SQL Editor > New Query > paste > Run
 -- Safe to re-run: uses IF NOT EXISTS / OR REPLACE where possible.
 

@@ -1,5 +1,5 @@
 -- Lets any user create their own challenge (previously admin-only) and
--- invite other FitFlex users to join it. Progress tracking reuses the
+-- invite other FitNFree users to join it. Progress tracking reuses the
 -- existing, already-working challenge_progress mechanic (days a workout was
 -- logged within the challenge's date range) for every challenge regardless
 -- of theme -- target_note is a purely descriptive goal label (e.g. "Goal:
@@ -31,7 +31,7 @@ create policy "Users can delete their own created challenges"
   using (creator_user_id = auth.uid());
 
 -- ─────────────────────────────────────────────
--- Challenge invites: invite another FitFlex user (searched by display name
+-- Challenge invites: invite another FitNFree user (searched by display name
 -- via the existing public `leaderboard` view) to join a challenge. Real,
 -- persisted, visible to the invitee on their own Challenges screen -- no
 -- email/push infrastructure required since both users are already in-app.

@@ -30,7 +30,7 @@ function buildCorsHeaders(origin: string | null): Record<string, string> {
 
 function safeRedirect(url: string | undefined, origin: string | null): string {
   if (url) {
-    if (url.startsWith('fitflex://')) return url;
+    if (url.startsWith('fitnfree://')) return url;
     try {
       if (isAllowedOrigin(new URL(url).origin)) return url;
     } catch {
@@ -152,7 +152,7 @@ Deno.serve(async (req) => {
       success_url: safeRedirect(successUrl, req.headers.get('Origin')),
       cancel_url: safeRedirect(cancelUrl ?? successUrl, req.headers.get('Origin')),
       metadata: {
-        fitflex_order_type: 'session_package',
+        fitnfree_order_type: 'session_package',
         supabase_user_id: user.id,
         package_id: pkg.id,
         trainer_user_id: pkg.trainer_user_id,

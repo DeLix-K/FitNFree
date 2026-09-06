@@ -28,7 +28,7 @@ const StreakShareCard = forwardRef<ElementRef<typeof ViewShot>, { streak: number
     return (
       <ViewShot ref={ref} options={{ format: 'png', quality: 0.95 }}>
         <View style={styles.card}>
-          <Text style={styles.brand}>FitFlex</Text>
+          <Text style={styles.brand}>FitNFree</Text>
           <Text style={styles.flame}>🔥</Text>
           <Text style={styles.streakNumber}>{streak}</Text>
           <Text style={styles.streakLabel}>{streak === 1 ? 'DAY STREAK' : 'DAY STREAK'}</Text>

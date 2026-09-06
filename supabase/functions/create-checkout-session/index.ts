@@ -1,5 +1,5 @@
 // Supabase Edge Function: creates a Stripe Checkout session for the logged-in
-// user to subscribe to FitFlex Premium.
+// user to subscribe to FitNFree Premium.
 // Deploy via the Supabase dashboard: Edge Functions > Create a new function.
 // Keep "Enforce JWT Verification" ON — only logged-in users can start a checkout.
 
@@ -27,11 +27,11 @@ function buildCorsHeaders(origin: string | null): Record<string, string> {
 }
 
 // The native app opens checkout in an in-app browser and needs Stripe to
-// redirect back to its own fitflex:// deep link (not a normal http(s)
+// redirect back to its own fitnfree:// deep link (not a normal http(s)
 // origin) to close that browser and return control to the app.
 function safeRedirect(url: string | undefined, origin: string | null): string {
   if (url) {
-    if (url.startsWith('fitflex://')) return url;
+    if (url.startsWith('fitnfree://')) return url;
     try {
       if (isAllowedOrigin(new URL(url).origin)) return url;
     } catch {

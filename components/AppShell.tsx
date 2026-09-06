@@ -87,7 +87,7 @@ export default function AppShell({
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.title}>FitFlex</Text>
+          <Text style={styles.title}>FitNFree</Text>
           <Text style={styles.subtitle}>{session.user.email}</Text>
         </View>
         <Pressable onPress={() => supabase.auth.signOut()}>

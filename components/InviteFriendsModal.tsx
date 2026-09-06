@@ -82,7 +82,7 @@ export default function InviteFriendsModal({
           {searching && <ActivityIndicator style={{ marginTop: 12 }} color={dark.accent} />}
 
           {!searching && query.trim().length >= 2 && results.length === 0 && (
-            <Text style={styles.empty}>No FitFlex users found matching "{query}".</Text>
+            <Text style={styles.empty}>No FitNFree users found matching "{query}".</Text>
           )}
 
           {results.map((r) => {

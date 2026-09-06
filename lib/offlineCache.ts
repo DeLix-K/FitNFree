@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // known data with no signal," not full offline read/write support. Never
 // throws outward; a caching failure should never block the live data path
 // that already works today.
-const PREFIX = 'fitflex_cache_v1_';
+const PREFIX = 'fitnfree_cache_v1_';
 
 export async function saveCache<T>(key: string, data: T): Promise<void> {
   try {

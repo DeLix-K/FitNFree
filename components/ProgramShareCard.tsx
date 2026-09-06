@@ -24,7 +24,7 @@ const ProgramShareCard = forwardRef<
   return (
     <ViewShot ref={ref} options={{ format: 'png', quality: 0.95 }}>
       <View style={[styles.card, { borderColor: theme.accent, backgroundColor: theme.surface }]}>
-        <Text style={[styles.brand, { color: theme.accent }]}>FITFLEX PROGRAM</Text>
+        <Text style={[styles.brand, { color: theme.accent }]}>FITNFREE PROGRAM</Text>
         <Text style={styles.emoji}>{emoji ?? '💪'}</Text>
         <Text style={styles.title}>{title}</Text>
         <Text style={[styles.progress, { color: theme.accent }]}>{progressLine}</Text>
@@ -37,7 +37,7 @@ const ProgramShareCard = forwardRef<
           ))}
         </View>
 
-        <Text style={styles.tagline}>Built with FitFlex</Text>
+        <Text style={styles.tagline}>Built with FitNFree</Text>
       </View>
     </ViewShot>
   );

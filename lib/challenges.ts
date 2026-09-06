@@ -444,7 +444,7 @@ export function subscribeToChallengeActivity(challengeId: string, onChange: () =
 
 export type UserSearchResult = { userId: string; displayName: string };
 
-// Search among real FitFlex users (via the public leaderboard view) to
+// Search among real FitNFree users (via the public leaderboard view) to
 // invite to a challenge -- excludes the caller themself.
 export async function searchUsers(query: string): Promise<UserSearchResult[]> {
   const trimmed = query.trim();
@@ -511,7 +511,7 @@ export async function fetchMyChallengeInvites(): Promise<ChallengeInviteView[]> 
   return rows.map((r) => ({
     ...r,
     challenge_title: r.challenges?.title ?? 'a challenge',
-    inviter_display_name: namesById.get(r.inviter_user_id) ?? 'A FitFlex user',
+    inviter_display_name: namesById.get(r.inviter_user_id) ?? 'A FitNFree user',
   }));
 }
 

@@ -1,21 +1,21 @@
 {
   "expo": {
-    "name": "FitFlex",
-    "slug": "FitFlex",
+    "name": "FitNFree",
+    "slug": "FitNFree",
     "version": "1.0.0",
-    "scheme": "fitflex",
+    "scheme": "fitnfree",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.teamk.fitflex",
+      "bundleIdentifier": "com.teamk.fitnfree",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.fitflex.app",
+      "package": "com.fitnfree.app",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -34,14 +34,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "FitFlex uses your photos to identify gym equipment from a picture.",
-          "cameraPermission": "FitFlex uses your camera to identify gym equipment from a photo."
+          "photosPermission": "FitNFree uses your photos to identify gym equipment from a picture.",
+          "cameraPermission": "FitNFree uses your camera to identify gym equipment from a photo."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "FitFlex uses your camera to scan food barcodes and restaurant menus.",
+          "cameraPermission": "FitNFree uses your camera to scan food barcodes and restaurant menus.",
           "recordAudioAndroid": false
         }
       ],
@@ -49,8 +49,8 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "FitFlex uses your microphone to hear voice commands to your AI Coach.",
-          "speechRecognitionPermission": "FitFlex uses speech recognition to turn your voice into text for your AI Coach."
+          "microphonePermission": "FitNFree uses your microphone to hear voice commands to your AI Coach.",
+          "speechRecognitionPermission": "FitNFree uses speech recognition to turn your voice into text for your AI Coach."
         }
       ],
       "expo-sharing",
@@ -58,7 +58,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "FitFlex uses your location to track outdoor activities like runs, walks, and rides.",
+          "locationWhenInUsePermission": "FitNFree uses your location to track outdoor activities like runs, walks, and rides.",
           "isAndroidBackgroundLocationEnabled": false
         }
       ],

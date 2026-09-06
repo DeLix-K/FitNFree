@@ -189,7 +189,7 @@ export default function TrainersScreen() {
               <Pressable style={styles.becomeTrainerCard} onPress={() => setSignupOpen(true)}>
                 <Text style={styles.becomeTrainerTitle}>🏋️ Join as a Verified Trainer → Earn & Build</Text>
                 <Text style={styles.becomeTrainerText}>
-                  Sign up, fill in your profile, add a coaching reel, and start selling custom plans to FitFlex members.
+                  Sign up, fill in your profile, add a coaching reel, and start selling custom plans to FitNFree members.
                 </Text>
                 <Text style={styles.becomeTrainerCta}>Get started →</Text>
               </Pressable>

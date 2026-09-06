@@ -8,7 +8,7 @@ import { Platform } from 'react-native';
 // stage in real time (that needs continuous background biometric
 // monitoring this app doesn't do). Users should keep a real phone alarm
 // as backup -- the UI says so.
-const WAKE_NOTIFICATION_ID = 'fitflex-wake-reminder';
+const WAKE_NOTIFICATION_ID = 'fitnfree-wake-reminder';
 const CHANNEL_ID = 'wake-reminders';
 
 // expo-notifications' scheduling APIs (getAllScheduledNotificationsAsync in
