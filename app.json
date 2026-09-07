@@ -74,7 +74,10 @@
     "extra": {
       "eas": {
         "projectId": "5d7afbfb-4304-4d69-907f-8184b8dd0872"
-      }
+      },
+      "privacyPolicyUrl": "https://delix-k.github.io/apps/fitnfree/privacy.html",
+      "termsUrl": "https://delix-k.github.io/apps/fitnfree/terms.html",
+      "supportUrl": "https://delix-k.github.io/apps/"
     },
     "owner": "team_k"
   }
