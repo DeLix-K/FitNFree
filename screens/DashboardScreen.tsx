@@ -164,6 +164,7 @@ export default function DashboardScreen({ onNavigate }: { onNavigate: (tab: Tab)
             { label: 'Progress', icon: '📈', tab: 'progress' },
             { label: 'History', icon: '🕘', tab: 'history' },
             { label: 'Profile', icon: '👤', tab: 'profile' },
+            { label: 'Outdoor', icon: '🏃', tab: 'outdoor' },
           ] as { label: string; icon: string; tab: Tab }[]
         ).map((tile) => (
           <Pressable key={tile.tab} style={styles.tile} onPress={() => onNavigate(tile.tab)}>

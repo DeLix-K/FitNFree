@@ -13,8 +13,14 @@ const SEGMENTS: { value: Segment; label: string }[] = [
   { value: 'outdoor', label: '🏃 Outdoor' },
 ];
 
-export default function PlansHubScreen({ session }: { session: Session }) {
-  const [segment, setSegment] = useState<Segment>('workouts');
+export default function PlansHubScreen({
+  session,
+  initialSegment,
+}: {
+  session: Session;
+  initialSegment?: Segment;
+}) {
+  const [segment, setSegment] = useState<Segment>(initialSegment ?? 'workouts');
 
   return (
     <View style={styles.container}>

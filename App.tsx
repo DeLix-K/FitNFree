@@ -124,6 +124,7 @@ export default function App() {
           {activeTab === 'wellness' && <WellnessHubScreen />}
           {activeTab === 'exercises' && <ExerciseListScreen onNavigate={setActiveTab} />}
           {activeTab === 'plans' && <PlansHubScreen session={session} />}
+          {activeTab === 'outdoor' && <PlansHubScreen session={session} initialSegment="outdoor" />}
           {activeTab === 'scan' && <EquipmentScanScreen onBack={() => setActiveTab('exercises')} />}
           {activeTab === 'formCheck' && <FormCheckScreen onBack={() => setActiveTab('coach')} />}
           {activeTab === 'nutrition' && <NutritionScreen onNavigate={setActiveTab} />}

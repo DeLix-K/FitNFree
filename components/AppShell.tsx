@@ -21,6 +21,7 @@ export type Tab =
   | 'wellness'
   | 'exercises'
   | 'plans'
+  | 'outdoor'
   | 'scan'
   | 'formCheck'
   | 'nutrition'
@@ -47,6 +48,7 @@ const MORE_TAB_VALUES: Tab[] = [
   'wellness',
   'exercises',
   'plans',
+  'outdoor',
   'scan',
   'formCheck',
   'history',

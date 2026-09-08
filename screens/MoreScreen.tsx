@@ -13,6 +13,7 @@ const ADMIN_EMAIL = 'teamlix6@gmail.com';
 // list since they're the three primary bottom-bar tabs.
 const TRAIN_LINKS: { label: string; icon: string; value: Tab }[] = [
   { label: 'My Plans', icon: '📋', value: 'plans' },
+  { label: 'Outdoor', icon: '🏃', value: 'outdoor' },
   { label: 'Exercises', icon: '💪', value: 'exercises' },
   { label: 'Wellness', icon: '🌿', value: 'wellness' },
   { label: 'Progress', icon: '📈', value: 'progress' },
