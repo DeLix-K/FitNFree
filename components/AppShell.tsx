@@ -1,6 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { dark } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 
@@ -77,9 +77,12 @@ export default function AppShell({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.title}>FitNFree</Text>
-          <Text style={styles.subtitle}>{session.user.email}</Text>
+        <View style={styles.headerIdentity}>
+          <Image source={require('../assets/icon.png')} style={styles.logo} />
+          <View>
+            <Text style={styles.title}>FitNFree</Text>
+            <Text style={styles.subtitle}>{session.user.email}</Text>
+          </View>
         </View>
         <Pressable onPress={() => supabase.auth.signOut()}>
           <Text style={styles.signOut}>Sign Out</Text>
@@ -120,6 +123,16 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingHorizontal: 20,
     marginBottom: 16,
+  },
+  headerIdentity: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  logo: {
+    width: 34,
+    height: 34,
+    borderRadius: 9,
   },
   title: {
     fontSize: 28,
