@@ -14,6 +14,7 @@ import ExerciseListScreen from './screens/ExerciseListScreen';
 import FormCheckScreen from './screens/FormCheckScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import ManageVideosScreen from './screens/ManageVideosScreen';
+import MoreScreen from './screens/MoreScreen';
 import NutritionScreen from './screens/NutritionScreen';
 import PlansHubScreen from './screens/PlansHubScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -132,6 +133,7 @@ export default function App() {
           {activeTab === 'history' && <HistoryScreen onBack={() => setActiveTab('profile')} />}
           {activeTab === 'profile' && <ProfileScreen onNavigate={setActiveTab} />}
           {activeTab === 'videos' && <ManageVideosScreen />}
+          {activeTab === 'more' && <MoreScreen session={session} onNavigate={setActiveTab} />}
         </AppShell>
         </CartProvider>
       ) : (

@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import type { Tab } from '../components/AppShell';
+import { LEGAL_LINKS, openLegalLink } from '../lib/legalLinks';
 import { computeTargets, deleteAccount, fetchBodyStats, updateBodyStats } from '../lib/profile';
 import { getMyStats, updateDisplayName } from '../lib/streaks';
 import { supabase } from '../lib/supabase';
@@ -391,13 +392,27 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
         </View>
       )}
 
-      <Text style={styles.sectionTitle}>More</Text>
+      <Text style={styles.sectionTitle}>Account</Text>
       <Pressable style={styles.linkRow} onPress={() => onNavigate?.('wearables')}>
         <Text style={styles.linkRowText}>⌚ Connected Devices</Text>
         <Text style={styles.linkRowArrow}>→</Text>
       </Pressable>
       <Pressable style={styles.linkRow} onPress={() => onNavigate?.('history')}>
         <Text style={styles.linkRowText}>🕘 Activity History</Text>
+        <Text style={styles.linkRowArrow}>→</Text>
+      </Pressable>
+
+      <Text style={styles.sectionTitle}>Legal &amp; Support</Text>
+      <Pressable style={styles.linkRow} onPress={() => openLegalLink(LEGAL_LINKS.privacyPolicy)}>
+        <Text style={styles.linkRowText}>🔒 Privacy Policy</Text>
+        <Text style={styles.linkRowArrow}>→</Text>
+      </Pressable>
+      <Pressable style={styles.linkRow} onPress={() => openLegalLink(LEGAL_LINKS.terms)}>
+        <Text style={styles.linkRowText}>📄 Terms &amp; Conditions</Text>
+        <Text style={styles.linkRowArrow}>→</Text>
+      </Pressable>
+      <Pressable style={styles.linkRow} onPress={() => openLegalLink(LEGAL_LINKS.support)}>
+        <Text style={styles.linkRowText}>✉️ Contact &amp; Support</Text>
         <Text style={styles.linkRowArrow}>→</Text>
       </Pressable>
 

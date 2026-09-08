@@ -1,22 +1,19 @@
 import type { Session } from '@supabase/supabase-js';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { dark } from '../lib/theme';
 import { supabase } from '../lib/supabase';
 
-// Consolidated from 21 tabs to 9. Several former top-level tabs still exist
-// as values here (wearables, scan, formCheck, history) because they're
-// still real, reachable screens -- just relocated to "hidden routes" only
-// reachable via an in-context entry point (Profile links, Coach's Form
-// Check quick-action, an Exercises quick-action) rather than the top nav
-// bar. Streaks/Challenges/Sleep/Habits/Outdoor/Trainers/Courses/
-// Guides & Plans/Merch are fully retired as their own Tab values -- they're
-// rendered as segments *inside* the new hub screens (Progress, Wellness,
-// My Plans, Shop) via direct component imports, not via activeTab
-// switching. Scan Food is retired outright: Nutrition's own LogMealModal
-// "Snap" mode already does real photo-based food logging, better
-// integrated than the old standalone screen was.
+// Consolidated from 21 tabs to 9, then from 9 to a 4-item bottom bar (Home,
+// Coach, Nutrition, More) on 2026-09-08. Every value below is still a real,
+// reachable screen -- Wearables/Wellness/Exercises/Plans/Scan/FormCheck/
+// History/Progress/Shop/TrainerDashboard/Profile/Videos are now reached via
+// MoreScreen (the 'more' tab) or an in-context entry point (Profile links,
+// Coach's Form Check quick-action, an Exercises quick-action) rather than
+// being top-level tabs themselves. Home and Coach stay primary since
+// they're the daily-open screen and the app's paywalled AI differentiator;
+// Nutrition stays primary as the other high-frequency daily action (logged
+// more often per day than a workout is, across comparable apps).
 export type Tab =
   | 'dashboard'
   | 'coach'
@@ -32,25 +29,32 @@ export type Tab =
   | 'shop'
   | 'trainerDashboard'
   | 'profile'
-  | 'videos';
+  | 'videos'
+  | 'more';
 
-const ADMIN_EMAIL = 'teamlix6@gmail.com';
-
-const BASE_TABS: { label: string; value: Tab }[] = [
-  { label: 'Home', value: 'dashboard' },
-  { label: 'Coach', value: 'coach' },
-  { label: 'My Plans', value: 'plans' },
-  { label: 'Exercises', value: 'exercises' },
-  { label: 'Nutrition', value: 'nutrition' },
-  { label: 'Wellness', value: 'wellness' },
-  { label: 'Progress', value: 'progress' },
-  { label: 'Shop', value: 'shop' },
-  { label: 'Profile', value: 'profile' },
+const PRIMARY_TABS: { label: string; icon: string; value: Tab }[] = [
+  { label: 'Home', icon: '🏠', value: 'dashboard' },
+  { label: 'Coach', icon: '🤖', value: 'coach' },
+  { label: 'Nutrition', icon: '🍎', value: 'nutrition' },
+  { label: 'More', icon: '☰', value: 'more' },
 ];
 
-const ADMIN_TABS: { label: string; value: Tab }[] = [
-  ...BASE_TABS,
-  { label: 'Manage Videos', value: 'videos' },
+// A tab also counts as "active" while a screen it hands off to (reached via
+// MoreScreen, not a primary tab of its own) is open, so the bottom bar
+// still highlights something sensible instead of going blank.
+const MORE_TAB_VALUES: Tab[] = [
+  'wearables',
+  'wellness',
+  'exercises',
+  'plans',
+  'scan',
+  'formCheck',
+  'history',
+  'progress',
+  'shop',
+  'trainerDashboard',
+  'profile',
+  'videos',
 ];
 
 export default function AppShell({
@@ -64,24 +68,9 @@ export default function AppShell({
   onChangeTab: (tab: Tab) => void;
   children: ReactNode;
 }) {
-  const [isTrainer, setIsTrainer] = useState(false);
-
-  useEffect(() => {
-    supabase
-      .from('profiles')
-      .select('is_trainer')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data }) => setIsTrainer(!!data?.is_trainer));
-    // Re-checked on every tab switch (not just on mount) so a user who just
-    // became a trainer via TrainersScreen sees the new tab appear as soon as
-    // they navigate, without needing a full app reload.
-  }, [session.user.id, activeTab]);
-
-  const baseTabs = session.user.email === ADMIN_EMAIL ? ADMIN_TABS : BASE_TABS;
-  const tabs = isTrainer
-    ? [...baseTabs, { label: 'Trainer Dashboard', value: 'trainerDashboard' as Tab }]
-    : baseTabs;
+  // The bottom bar highlights "More" whenever the active screen is one of
+  // its sub-destinations, rather than showing no tab selected at all.
+  const highlightedTab = MORE_TAB_VALUES.includes(activeTab) ? 'more' : activeTab;
 
   return (
     <View style={styles.container}>
@@ -95,26 +84,24 @@ export default function AppShell({
         </Pressable>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.tabRow}
-        contentContainerStyle={styles.tabRowContent}
-      >
-        {tabs.map((tab) => (
+      <View style={styles.content}>{children}</View>
+
+      <View style={styles.tabBar}>
+        {PRIMARY_TABS.map((tab) => (
           <Pressable
             key={tab.value}
-            style={[styles.tab, activeTab === tab.value && styles.tabActive]}
+            style={styles.tab}
             onPress={() => onChangeTab(tab.value)}
           >
-            <Text style={[styles.tabText, activeTab === tab.value && styles.tabTextActive]}>
+            <Text style={[styles.tabIcon, highlightedTab === tab.value && styles.tabIconActive]}>
+              {tab.icon}
+            </Text>
+            <Text style={[styles.tabText, highlightedTab === tab.value && styles.tabTextActive]}>
               {tab.label}
             </Text>
           </Pressable>
         ))}
-      </ScrollView>
-
-      <View style={styles.content}>{children}</View>
+      </View>
     </View>
   );
 }
@@ -148,34 +135,36 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     marginTop: 6,
   },
-  tabRow: {
-    flexGrow: 0,
-    borderBottomWidth: 1,
-    borderBottomColor: dark.border,
+  content: {
+    flex: 1,
+    backgroundColor: '#fff',
   },
-  tabRowContent: {
+  tabBar: {
     flexDirection: 'row',
-    paddingHorizontal: 20,
+    borderTopWidth: 1,
+    borderTopColor: dark.border,
+    backgroundColor: dark.surface,
+    paddingTop: 8,
+    paddingBottom: 24,
   },
   tab: {
-    paddingVertical: 10,
-    marginRight: 24,
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
+    flex: 1,
+    alignItems: 'center',
+    gap: 2,
   },
-  tabActive: {
-    borderBottomColor: dark.accent,
+  tabIcon: {
+    fontSize: 20,
+    opacity: 0.55,
+  },
+  tabIconActive: {
+    opacity: 1,
   },
   tabText: {
-    fontSize: 15,
+    fontSize: 11,
     fontWeight: '600',
     color: dark.textFaint,
   },
   tabTextActive: {
     color: dark.accent,
-  },
-  content: {
-    flex: 1,
-    backgroundColor: '#fff',
   },
 });
