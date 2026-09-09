@@ -1,7 +1,8 @@
 {
   "cli": {
     "version": ">= 22.0.0",
-    "appVersionSource": "remote"
+    "appVersionSource": "remote",
+    "promptToConfigurePushNotifications": false
   },
   "build": {
     "development": {
@@ -28,6 +29,12 @@
     }
   },
   "submit": {
-    "production": {}
+    "production": {
+      "ios": {
+        "ascApiKeyPath": "./credentials/AuthKey_KSXFRBZ28B.p8",
+        "ascApiKeyIssuerId": "48a8c95a-e466-4375-9b2d-2566d0330499",
+        "ascApiKeyId": "KSXFRBZ28B"
+      }
+    }
   }
 }
