@@ -11,7 +11,9 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.teamk.fitnfree",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSSpeechRecognitionUsageDescription": "FitNFree uses speech recognition to turn your voice into text for your AI Coach.",
+        "NSMicrophoneUsageDescription": "FitNFree uses your microphone to hear voice commands to your AI Coach."
       }
     },
     "android": {
@@ -23,7 +25,13 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.CAMERA",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -80,12 +88,12 @@
       ]
     ],
     "extra": {
-      "eas": {
-        "projectId": "5d7afbfb-4304-4d69-907f-8184b8dd0872"
-      },
       "privacyPolicyUrl": "https://delix-k.github.io/apps/fitnfree/privacy.html",
       "termsUrl": "https://delix-k.github.io/apps/fitnfree/terms.html",
-      "supportUrl": "https://delix-k.github.io/apps/"
+      "supportUrl": "https://delix-k.github.io/apps/",
+      "eas": {
+        "projectId": "f3710caa-723a-45cc-be8d-dbd29127a81a"
+      }
     },
     "owner": "team_k"
   }
