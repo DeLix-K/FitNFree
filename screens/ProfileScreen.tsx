@@ -416,6 +416,10 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
         <Text style={styles.linkRowArrow}>→</Text>
       </Pressable>
 
+      <Pressable style={styles.signOutButton} onPress={() => supabase.auth.signOut()}>
+        <Text style={styles.signOutButtonText}>Sign Out</Text>
+      </Pressable>
+
       <View style={styles.dangerZone}>
         <Text style={styles.dangerTitle}>Danger Zone</Text>
         <Text style={styles.dangerText}>
@@ -687,6 +691,21 @@ const styles = StyleSheet.create({
   },
   linkRowText: { color: dark.text, fontSize: 14, fontWeight: '600' },
   linkRowArrow: { color: dark.textFaint, fontSize: 16 },
+  signOutButton: {
+    borderWidth: 1,
+    borderColor: dark.border,
+    backgroundColor: dark.surface,
+    borderRadius: 10,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  signOutButtonText: {
+    color: dark.text,
+    fontSize: 14,
+    fontWeight: '700',
+  },
   dangerZone: {
     borderWidth: 1,
     borderColor: dark.danger,

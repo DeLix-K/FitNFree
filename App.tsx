@@ -117,7 +117,7 @@ export default function App() {
     <>
       {session ? (
         <CartProvider>
-        <AppShell session={session} activeTab={activeTab} onChangeTab={setActiveTab}>
+        <AppShell activeTab={activeTab} onChangeTab={setActiveTab}>
           {activeTab === 'dashboard' && <DashboardScreen onNavigate={setActiveTab} />}
           {activeTab === 'coach' && <CoachScreen onNavigate={setActiveTab} />}
           {activeTab === 'wearables' && <WearablesScreen onBack={() => setActiveTab('profile')} />}
