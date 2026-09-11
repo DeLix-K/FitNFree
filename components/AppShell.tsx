@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { dark } from '../lib/theme';
 
 // Consolidated from 21 tabs to 9, then from 9 to a 4-item bottom bar (Home,
@@ -70,8 +71,14 @@ export default function AppShell({
   // its sub-destinations, rather than showing no tab selected at all.
   const highlightedTab = MORE_TAB_VALUES.includes(activeTab) ? 'more' : activeTab;
 
+  // Real device insets, not a guessed constant -- a fixed paddingBottom
+  // (previously 24) cleared iOS's home indicator and gesture-nav Android
+  // fine, but on 3-button-nav Android the system bar is taller and the tab
+  // bar rendered almost flush against it.
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
       <View style={styles.header}>
         <Image source={require('../assets/icon.png')} style={styles.logo} />
         <Text style={styles.title}>FitNFree</Text>
@@ -79,7 +86,7 @@ export default function AppShell({
 
       <View style={styles.content}>{children}</View>
 
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { paddingBottom: insets.bottom + 8 }]}>
         {PRIMARY_TABS.map((tab) => (
           <Pressable
             key={tab.value}
@@ -103,7 +110,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: dark.background,
-    paddingTop: 60,
   },
   header: {
     flexDirection: 'row',
@@ -132,7 +138,6 @@ const styles = StyleSheet.create({
     borderTopColor: dark.border,
     backgroundColor: dark.surface,
     paddingTop: 8,
-    paddingBottom: 24,
   },
   tab: {
     flex: 1,

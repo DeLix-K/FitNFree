@@ -1,7 +1,7 @@
 {
   "name": "fitnfree",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "index.tsx",
   "expo": {
     "autolinking": {
       "android": {
@@ -36,6 +36,7 @@
     "react-dom": "19.2.3",
     "react-native": "0.86.2",
     "react-native-maps": "1.27.2",
+    "react-native-safe-area-context": "~5.7.0",
     "react-native-svg": "15.15.4",
     "react-native-url-polyfill": "^4.0.0",
     "react-native-view-shot": "5.1.0",
