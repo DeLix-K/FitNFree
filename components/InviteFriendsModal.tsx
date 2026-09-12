@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { searchUsers, sendChallengeInvite, type UserSearchResult } from '../lib/challenges';
 import { dark } from '../lib/theme';
 
@@ -61,7 +71,10 @@ export default function InviteFriendsModal({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={styles.backdrop}>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <View style={styles.card}>
           <View style={styles.header}>
             <Text style={styles.title} numberOfLines={1}>Invite Friends — {challengeTitle}</Text>
@@ -107,7 +120,7 @@ export default function InviteFriendsModal({
             );
           })}
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

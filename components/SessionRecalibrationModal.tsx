@@ -1,5 +1,16 @@
 import { useState } from 'react';
-import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { saveHistoryEntry } from '../lib/aiHistory';
 import { askClaude, buildSessionRecalibrationPrompt, type CoachPersonality } from '../lib/claude';
 import { fetchTodaysPlanForRecalibration } from '../lib/coachInsights';
@@ -74,7 +85,10 @@ export default function SessionRecalibrationModal({
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
-      <View style={styles.backdrop}>
+      <KeyboardAvoidingView
+        style={styles.backdrop}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <View style={styles.card}>
           <View style={styles.header}>
             <Text style={styles.title}>Recalibrate Today's Session</Text>
@@ -160,7 +174,7 @@ export default function SessionRecalibrationModal({
             )}
           </ScrollView>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
