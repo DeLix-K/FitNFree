@@ -1,9 +1,12 @@
 # FitNFree — App Store / Play Store Listing Copy
 
 Drafted 2026-09-06, for the first-time listing under the new name/bundle IDs
-(`com.teamk.fitnfree` iOS / `com.fitnfree.app` Android). Character counts are
-for the strictest of the two stores' limits on each field — verify against
-the current console limit before submitting, since these change occasionally.
+(`com.teamk.fitnfree` on both iOS and Android — the originally-planned
+`com.fitnfree.app` Android package turned out to be already taken by an
+unrelated app on Google Play, discovered 2026-09-12 during Play Console
+app creation). Character counts are for the strictest of the two stores'
+limits on each field — verify against the current console limit before
+submitting, since these change occasionally.
 
 ## App name
 **FitNFree** (8 chars — well under iOS's 30 / Android's 30)

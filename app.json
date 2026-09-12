@@ -17,7 +17,7 @@
       }
     },
     "android": {
-      "package": "com.fitnfree.app",
+      "package": "com.teamk.fitnfree",
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
