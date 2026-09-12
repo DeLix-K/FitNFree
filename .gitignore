@@ -18,6 +18,11 @@ expo-env.d.ts
 *.key
 *.mobileprovision
 
+# API keys/service-account credentials (ASC key, Google Play service
+# account, etc.) -- the whole directory, not just specific extensions,
+# since a .json service-account key wasn't covered by any rule above.
+/credentials/
+
 # Metro
 .metro-health-check*
 
