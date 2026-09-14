@@ -26,6 +26,10 @@ expo-env.d.ts
 # Metro
 .metro-health-check*
 
+# Store submission build artifacts (large binaries already hosted on EAS)
+*.aab
+*.ipa
+
 # debug
 npm-debug.*
 yarn-debug.*

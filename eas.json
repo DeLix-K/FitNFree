@@ -33,7 +33,8 @@
       "ios": {
         "ascApiKeyPath": "./credentials/AuthKey_KSXFRBZ28B.p8",
         "ascApiKeyIssuerId": "48a8c95a-e466-4375-9b2d-2566d0330499",
-        "ascApiKeyId": "KSXFRBZ28B"
+        "ascApiKeyId": "KSXFRBZ28B",
+        "ascAppId": "6809598004"
       }
     }
   }
