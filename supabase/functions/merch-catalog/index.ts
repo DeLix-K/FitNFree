@@ -80,32 +80,47 @@ Deno.serve(async (req) => {
     const listData = await listResponse.json();
     const productSummaries = (listData.result ?? []) as { id: number; name: string; thumbnail_url: string }[];
 
-    const products = await Promise.all(
-      productSummaries.map(async (summary) => {
-        const detailResponse = await fetch(`https://api.printful.com/store/products/${summary.id}`, {
-          headers: printfulHeaders(),
-        });
-        if (!detailResponse.ok) return null;
+    // Printful rate-limits the store endpoints, so fetch product details in
+    // small batches instead of firing one request per product at once --
+    // otherwise the later requests in a large catalog get 429'd and those
+    // products silently vanish from the results.
+    const DETAIL_FETCH_CONCURRENCY = 4;
 
-        const detailData = await detailResponse.json();
-        const variants = (detailData.result?.sync_variants ?? []) as PrintfulVariant[];
+    async function fetchProductDetail(summary: { id: number; name: string; thumbnail_url: string }) {
+      const detailResponse = await fetch(`https://api.printful.com/store/products/${summary.id}`, {
+        headers: printfulHeaders(),
+      });
+      if (!detailResponse.ok) {
+        const body = await detailResponse.text();
+        console.error('Printful product detail error', summary.id, detailResponse.status, body);
+        return null;
+      }
 
-        return {
-          id: summary.id,
-          name: summary.name,
-          thumbnailUrl: summary.thumbnail_url,
-          variants: variants.map((v) => ({
-            syncVariantId: v.id,
-            name: v.name,
-            size: v.size,
-            color: v.color,
-            priceCents: Math.round(parseFloat(v.retail_price) * 100),
-            currency: v.currency,
-            available: v.availability_status === 'active',
-          })),
-        };
-      })
-    );
+      const detailData = await detailResponse.json();
+      const variants = (detailData.result?.sync_variants ?? []) as PrintfulVariant[];
+
+      return {
+        id: summary.id,
+        name: summary.name,
+        thumbnailUrl: summary.thumbnail_url,
+        variants: variants.map((v) => ({
+          syncVariantId: v.id,
+          name: v.name,
+          size: v.size,
+          color: v.color,
+          priceCents: Math.round(parseFloat(v.retail_price) * 100),
+          currency: v.currency,
+          available: v.availability_status === 'active',
+        })),
+      };
+    }
+
+    const products: Awaited<ReturnType<typeof fetchProductDetail>>[] = [];
+    for (let i = 0; i < productSummaries.length; i += DETAIL_FETCH_CONCURRENCY) {
+      const batch = productSummaries.slice(i, i + DETAIL_FETCH_CONCURRENCY);
+      const batchResults = await Promise.all(batch.map(fetchProductDetail));
+      products.push(...batchResults);
+    }
 
     const catalog = products.filter((p) => p && p.variants.some((v) => v.available));
 
