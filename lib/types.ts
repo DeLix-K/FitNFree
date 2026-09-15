@@ -282,6 +282,13 @@ export type TrainerMessage = {
   created_at: string;
 };
 
+export type BlockedUser = {
+  id: string;
+  blocker_user_id: string;
+  blocked_user_id: string;
+  created_at: string;
+};
+
 export type TrainingFormat = 'in_person' | 'virtual' | 'online';
 
 export type TrainerProfile = {
