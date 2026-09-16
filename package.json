@@ -56,5 +56,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web"
   },
+  "overrides": {
+    "typescript": "~6.0.3"
+  },
   "private": true
 }
