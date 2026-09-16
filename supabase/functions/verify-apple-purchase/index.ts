@@ -9,7 +9,9 @@
 //                              App Store Connect > Users and Access >
 //                              Integrations > In-App Purchase
 //   APPLE_IAP_ISSUER_ID     -- Issuer ID shown on the same page
-//   APPLE_IAP_PRIVATE_KEY   -- the full contents of the downloaded .p8 file
+//   APPLE_IAP_PRIVATE_KEY_B64 -- the downloaded .p8 file's contents, base64
+//                                encoded as one line (avoids any .env/secrets
+//                                tooling mangling the PEM's real newlines)
 //   APPLE_BUNDLE_ID         -- com.teamk.fitnfree
 
 import { createClient } from 'npm:@supabase/supabase-js@2';
@@ -43,7 +45,7 @@ async function makeAppStoreServerJwt(): Promise<string> {
   const keyId = Deno.env.get('APPLE_IAP_KEY_ID')!;
   const issuerId = Deno.env.get('APPLE_IAP_ISSUER_ID')!;
   const bundleId = Deno.env.get('APPLE_BUNDLE_ID')!;
-  const privateKeyPem = Deno.env.get('APPLE_IAP_PRIVATE_KEY')!;
+  const privateKeyPem = atob(Deno.env.get('APPLE_IAP_PRIVATE_KEY_B64')!);
 
   const header = { alg: 'ES256', kid: keyId, typ: 'JWT' };
   const now = Math.floor(Date.now() / 1000);
@@ -88,6 +90,13 @@ function decodeSignedTransactionInfo(jws: string): Record<string, unknown> {
 }
 
 async function fetchTransactionInfo(transactionId: string, asJwt: string) {
+  // Try production first, then sandbox. A transaction genuinely not found
+  // reports 404 on whichever environment it isn't in -- but production can
+  // also return 401 with no body if the app hasn't been through App Review
+  // yet (production App Store Server API access isn't granted pre-launch),
+  // which isn't a real auth failure of our key, just means "try sandbox."
+  // Only surface an error if BOTH environments fail.
+  const failures: string[] = [];
   for (const base of ['https://api.storekit.itunes.apple.com', 'https://api.storekit-sandbox.itunes.apple.com']) {
     const res = await fetch(`${base}/inApps/v1/transactions/${transactionId}`, {
       headers: { Authorization: `Bearer ${asJwt}` },
@@ -96,13 +105,10 @@ async function fetchTransactionInfo(transactionId: string, asJwt: string) {
       const body = await res.json();
       return decodeSignedTransactionInfo(body.signedTransactionInfo as string);
     }
-    if (res.status !== 404) {
-      const text = await res.text();
-      throw new Error(`Apple transaction lookup failed (${res.status}): ${text}`);
-    }
-    // 404 on production just means it's a sandbox transaction; try the next base.
+    const text = await res.text();
+    failures.push(`${base}: ${res.status} ${text}`);
   }
-  throw new Error('Transaction not found in production or sandbox.');
+  throw new Error(`Transaction not found. ${failures.join(' | ')}`);
 }
 
 Deno.serve(async (req) => {
