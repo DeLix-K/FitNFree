@@ -77,7 +77,7 @@
         }
       ],
       "expo-video",
-      "react-native-iap",
+      "expo-iap",
       [
         "expo-splash-screen",
         {

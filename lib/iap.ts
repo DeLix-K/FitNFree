@@ -3,9 +3,9 @@ import {
   initConnection,
   purchaseErrorListener,
   purchaseUpdatedListener,
-  requestSubscription,
+  requestPurchase,
   type Purchase,
-} from 'react-native-iap';
+} from 'expo-iap';
 import { supabase } from './supabase';
 
 export const PREMIUM_SKU_IOS = 'com.teamk.fitnfree.premium.monthly';
@@ -22,6 +22,14 @@ function ensureConnection(): Promise<boolean> {
 // the client-submitted receipt) before granting is_premium. Apple requires
 // digital subscriptions to go through IAP on iOS -- this is the iOS-only
 // counterpart to the Stripe checkout used on Android/web (see billing.ts).
+//
+// Uses expo-iap rather than react-native-iap: the latter's classic API
+// depends on the CocoaPods "RCT-Folly" pod, which this project's React
+// Native version no longer vendors as a standalone pod (it now ships a
+// prebuilt ReactNativeCore/ReactNativeDependencies bundle instead), so pod
+// install fails outright. react-native-iap's newer Nitro-based major avoids
+// that, but its own docs say it doesn't support Expo Dev Client builds and
+// point to expo-iap for Expo projects -- which is what this app uses.
 export async function purchasePremiumIOS(): Promise<void> {
   await ensureConnection();
 
@@ -37,7 +45,10 @@ export async function purchasePremiumIOS(): Promise<void> {
       reject(new Error(e.message || 'Purchase failed.'));
     });
 
-    requestSubscription({ sku: PREMIUM_SKU_IOS }).catch((err) => {
+    requestPurchase({
+      request: { apple: { sku: PREMIUM_SKU_IOS } },
+      type: 'subs',
+    }).catch((err) => {
       updateSub.remove();
       errorSub.remove();
       reject(err instanceof Error ? err : new Error(String(err)));
@@ -70,7 +81,7 @@ export async function purchasePremiumIOS(): Promise<void> {
   // Only finish the transaction with Apple once our own server has
   // confirmed and recorded the entitlement -- otherwise a network blip
   // between purchase and verification could finish the transaction (making
-  // react-native-iap stop redelivering it) while the user never actually
-  // got Premium.
-  await finishTransaction({ purchase });
+  // the store stop redelivering it) while the user never actually got
+  // Premium.
+  await finishTransaction({ purchase, isConsumable: false });
 }
