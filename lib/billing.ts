@@ -1,7 +1,16 @@
+import { Platform } from 'react-native';
 import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
+import { purchasePremiumIOS } from './iap';
 import { supabase } from './supabase';
 
 export async function startCheckout(): Promise<void> {
+  // Apple requires digital subscriptions to be sold through its own In-App
+  // Purchase system on iOS -- Android and web keep using Stripe Checkout.
+  if (Platform.OS === 'ios') {
+    await purchasePremiumIOS();
+    return;
+  }
+
   const returnUrl = getCheckoutRedirectUrl();
 
   const { data, error } = await supabase.functions.invoke<{ url?: string; error?: string }>(

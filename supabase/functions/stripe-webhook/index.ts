@@ -141,16 +141,33 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     );
 
+    // Apple's own webhook can also grant/revoke is_premium (see the
+    // verify-apple-purchase and apple-notifications functions). Granting is
+    // always safe to attribute to Stripe, but revoking must not clobber an
+    // active subscription actually held through Apple -- so a revoke only
+    // touches rows that aren't currently Apple-sourced.
     const setPremiumByCustomer = async (
       customerId: string,
       isPremium: boolean,
       subscriptionId: string | null
     ) => {
-      const { data, error, count } = await adminClient
+      let query = adminClient
         .from('profiles')
-        .update({ is_premium: isPremium, stripe_subscription_id: subscriptionId })
-        .eq('stripe_customer_id', customerId)
-        .select();
+        .update({
+          is_premium: isPremium,
+          stripe_subscription_id: subscriptionId,
+          ...(isPremium ? { premium_source: 'stripe' } : {}),
+        })
+        .eq('stripe_customer_id', customerId);
+
+      if (!isPremium) {
+        // Plain .neq() would silently exclude every row where
+        // premium_source is still NULL (SQL three-valued logic), which is
+        // every profile that predates this column -- so match NULL too.
+        query = query.or('premium_source.is.null,premium_source.neq.apple');
+      }
+
+      const { data, error, count } = await query.select();
       console.log(
         'setPremiumByCustomer',
         JSON.stringify({ customerId, isPremium, subscriptionId, error, count, rows: data?.length })
