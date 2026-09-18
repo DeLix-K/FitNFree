@@ -408,6 +408,7 @@ const styles = StyleSheet.create({
   },
   personalityRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 8,
     marginTop: 12,
   },
