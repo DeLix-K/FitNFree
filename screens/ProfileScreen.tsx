@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -9,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import type { Tab } from '../components/AppShell';
+import { restorePremiumPurchases } from '../lib/iap';
 import { LEGAL_LINKS, openLegalLink } from '../lib/legalLinks';
 import { computeTargets, deleteAccount, fetchBodyStats, updateBodyStats } from '../lib/profile';
 import { getMyStats, updateDisplayName } from '../lib/streaks';
@@ -60,6 +63,7 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
   const [saved, setSaved] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
   const [email, setEmail] = useState('');
   const [memberSince, setMemberSince] = useState('');
@@ -198,6 +202,24 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setDeleting(false);
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    setRestoring(true);
+    setError(null);
+    try {
+      const found = await restorePremiumPurchases();
+      Alert.alert(
+        found ? 'Purchases restored' : 'Nothing to restore',
+        found
+          ? 'Your Premium subscription is active again.'
+          : "We couldn't find a Premium subscription on this store account."
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -401,6 +423,12 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
         <Text style={styles.linkRowText}>🕘 Activity History</Text>
         <Text style={styles.linkRowArrow}>→</Text>
       </Pressable>
+      {Platform.OS !== 'web' && (
+        <Pressable style={styles.linkRow} onPress={handleRestorePurchases} disabled={restoring}>
+          <Text style={styles.linkRowText}>♻️ Restore Purchases</Text>
+          {restoring ? <ActivityIndicator size="small" color={dark.accent} /> : <Text style={styles.linkRowArrow}>→</Text>}
+        </Pressable>
+      )}
 
       <Text style={styles.sectionTitle}>Legal &amp; Support</Text>
       <Pressable style={styles.linkRow} onPress={() => openLegalLink(LEGAL_LINKS.privacyPolicy)}>

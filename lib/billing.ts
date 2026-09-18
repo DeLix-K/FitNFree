@@ -1,13 +1,17 @@
 import { Platform } from 'react-native';
 import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
-import { purchasePremiumIOS } from './iap';
+import { purchasePremiumAndroid, purchasePremiumIOS } from './iap';
 import { supabase } from './supabase';
 
 export async function startCheckout(): Promise<void> {
-  // Apple requires digital subscriptions to be sold through its own In-App
-  // Purchase system on iOS -- Android and web keep using Stripe Checkout.
+  // Apple and Google both require digital subscriptions to be sold through
+  // their own billing systems inside their apps -- only web uses Stripe.
   if (Platform.OS === 'ios') {
     await purchasePremiumIOS();
+    return;
+  }
+  if (Platform.OS === 'android') {
+    await purchasePremiumAndroid();
     return;
   }
 
