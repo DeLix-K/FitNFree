@@ -167,6 +167,27 @@ Deno.serve(async (req) => {
     }
 
     const adminClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+    // One Apple subscription belongs to one FitNFree account. If the Apple ID
+    // is already subscribed, Apple hands back that existing subscription
+    // instead of starting a new one -- so a second FitNFree account signed in
+    // on the same device would otherwise trip the unique index below with an
+    // unreadable database error.
+    const conflictMessage =
+      'This Apple subscription is already linked to a different FitNFree account. Sign in with that account, or use a different Apple ID.';
+    const { data: owner } = await adminClient
+      .from('profiles')
+      .select('id')
+      .eq('apple_original_transaction_id', String(info.originalTransactionId))
+      .neq('id', user.id)
+      .maybeSingle();
+    if (owner) {
+      return new Response(JSON.stringify({ error: conflictMessage }), {
+        status: 409,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
     const { error: updateError } = await adminClient
       .from('profiles')
       .update({
@@ -177,7 +198,16 @@ Deno.serve(async (req) => {
       })
       .eq('id', user.id);
 
-    if (updateError) throw new Error(updateError.message);
+    if (updateError) {
+      // Lost a race with another account claiming the same subscription.
+      if (updateError.code === '23505') {
+        return new Response(JSON.stringify({ error: conflictMessage }), {
+          status: 409,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      throw new Error(updateError.message);
+    }
 
     return new Response(JSON.stringify({ success: true, expiresAt: new Date(expiresAtMs).toISOString() }), {
       status: 200,

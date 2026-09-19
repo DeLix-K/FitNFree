@@ -92,6 +92,26 @@ async function finish(purchase: Purchase): Promise<void> {
   await finishTransaction({ purchase, isConsumable: false });
 }
 
+// If this store account already holds an active Premium subscription, the
+// store won't start a new purchase -- it either re-announces the old one
+// unreliably or refuses outright -- so a second tap on Upgrade would hang or
+// error. Instead, hand the existing purchase to the server, which either
+// links it to the signed-in user or explains why it can't (e.g. it belongs
+// to a different FitNFree account). Returns whether one was found.
+async function verifyOwnedPremium(): Promise<boolean> {
+  const purchases = await getAvailablePurchases();
+  const owned = purchases.find((p) => p.productId === PREMIUM_SKU);
+  if (!owned) return false;
+
+  await verifyPurchase(owned);
+  try {
+    await finish(owned);
+  } catch {
+    // Already acknowledged/finished on a previous run -- nothing left to do.
+  }
+  return true;
+}
+
 // Apple requires digital subscriptions on iOS to go through its In-App
 // Purchase system; Google requires the same through Play Billing. Stripe
 // stays for web (see billing.ts).
@@ -104,6 +124,9 @@ async function finish(purchase: Purchase): Promise<void> {
 // that, but its own docs say it doesn't support Expo Dev Client builds and
 // point to expo-iap for Expo projects -- which is what this app uses.
 export async function purchasePremiumIOS(): Promise<void> {
+  await ensureConnection();
+  if (await verifyOwnedPremium()) return;
+
   const purchase = await runPurchase(() =>
     requestPurchase({ request: { apple: { sku: PREMIUM_SKU } }, type: 'subs' })
   );
@@ -113,6 +136,7 @@ export async function purchasePremiumIOS(): Promise<void> {
 
 export async function purchasePremiumAndroid(): Promise<void> {
   await ensureConnection();
+  if (await verifyOwnedPremium()) return;
 
   // Play Billing subscriptions are bought against a specific offer, so we
   // need the offer token for the base plan first.
@@ -153,16 +177,5 @@ export async function purchasePremiumAndroid(): Promise<void> {
 export async function restorePremiumPurchases(): Promise<boolean> {
   await ensureConnection();
   if (Platform.OS === 'ios') await restorePurchases();
-
-  const purchases = await getAvailablePurchases();
-  const premium = purchases.find((p) => p.productId === PREMIUM_SKU);
-  if (!premium) return false;
-
-  await verifyPurchase(premium);
-  try {
-    await finish(premium);
-  } catch {
-    // Already acknowledged/finished on a previous run -- nothing left to do.
-  }
-  return true;
+  return verifyOwnedPremium();
 }

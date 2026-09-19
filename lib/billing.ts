@@ -3,7 +3,41 @@ import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
 import { purchasePremiumAndroid, purchasePremiumIOS } from './iap';
 import { supabase } from './supabase';
 
-export async function startCheckout(): Promise<void> {
+let checkoutInFlight: Promise<void> | null = null;
+
+// Screens that show Premium status (useAiGate) subscribe here so they refresh
+// as soon as a purchase or restore succeeds, instead of staying on the free
+// view until the app is reopened.
+const premiumChangedListeners = new Set<() => void>();
+
+export function onPremiumChanged(listener: () => void): () => void {
+  premiumChangedListeners.add(listener);
+  return () => {
+    premiumChangedListeners.delete(listener);
+  };
+}
+
+export function notifyPremiumChanged(): void {
+  premiumChangedListeners.forEach((listener) => listener());
+}
+
+// One checkout at a time: several Upgrade buttons can be on screen at once,
+// and a second tap mid-purchase must join the first rather than start a
+// competing store purchase.
+export function startCheckout(): Promise<void> {
+  if (!checkoutInFlight) {
+    checkoutInFlight = runCheckout()
+      .then(() => {
+        if (Platform.OS !== 'web') notifyPremiumChanged();
+      })
+      .finally(() => {
+        checkoutInFlight = null;
+      });
+  }
+  return checkoutInFlight;
+}
+
+async function runCheckout(): Promise<void> {
   // Apple and Google both require digital subscriptions to be sold through
   // their own billing systems inside their apps -- only web uses Stripe.
   if (Platform.OS === 'ios') {

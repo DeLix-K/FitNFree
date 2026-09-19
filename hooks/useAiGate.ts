@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { onPremiumChanged } from '../lib/billing';
 import { FREE_DAILY_AI_LIMIT, getIsPremium, getTodayAiUsageCount } from '../lib/subscription';
 
 export function useAiGate() {
@@ -14,6 +15,8 @@ export function useAiGate() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  useEffect(() => onPremiumChanged(() => void refresh()), [refresh]);
 
   const loaded = isPremium !== null && usageToday !== null;
   const remaining = isPremium ? Infinity : Math.max(0, FREE_DAILY_AI_LIMIT - (usageToday ?? 0));

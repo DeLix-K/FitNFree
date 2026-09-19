@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import type { Tab } from '../components/AppShell';
+import { notifyPremiumChanged } from '../lib/billing';
 import { restorePremiumPurchases } from '../lib/iap';
 import { LEGAL_LINKS, openLegalLink } from '../lib/legalLinks';
 import { computeTargets, deleteAccount, fetchBodyStats, updateBodyStats } from '../lib/profile';
@@ -210,6 +211,7 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
     setError(null);
     try {
       const found = await restorePremiumPurchases();
+      if (found) notifyPremiumChanged();
       Alert.alert(
         found ? 'Purchases restored' : 'Nothing to restore',
         found
