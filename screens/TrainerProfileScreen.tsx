@@ -163,7 +163,7 @@ export default function TrainerProfileScreen({
         {error && <Text style={styles.error}>{error}</Text>}
 
         <View style={styles.actionRow}>
-          {CAN_SELL_DIGITAL_CONTENT && (
+          {CAN_SELL_DIGITAL_CONTENT && trainer.payouts_enabled && (
             <Pressable style={[styles.bookButton, styles.actionButton]} onPress={onBuy} disabled={buying}>
               {buying ? <ActivityIndicator color="#0a0a0a" /> : <Text style={styles.bookButtonText}>📅 Book Custom Plan</Text>}
             </Pressable>
@@ -197,7 +197,7 @@ export default function TrainerProfileScreen({
               </>
             )}
 
-            {packages.length > 0 && (
+            {trainer.payouts_enabled && packages.length > 0 && (
               <>
                 <Text style={styles.sectionTitle}>Session Packages</Text>
                 {sessionsRemaining > 0 && (

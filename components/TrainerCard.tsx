@@ -100,7 +100,7 @@ export default function TrainerCard({
       )}
 
       <View style={styles.actionRow}>
-        {CAN_SELL_DIGITAL_CONTENT && (
+        {CAN_SELL_DIGITAL_CONTENT && trainer.payouts_enabled && (
           <Pressable style={[styles.bookButton, styles.actionButton]} onPress={onBook}>
             <Text style={styles.bookButtonText}>📅 Book This Trainer</Text>
           </Pressable>

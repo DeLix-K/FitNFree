@@ -39,7 +39,7 @@ export async function fetchTrainers(): Promise<TrainerProfile[]> {
   const { data, error } = await supabase
     .from('trainer_profiles')
     .select('*')
-    .eq('payouts_enabled', true)
+    .or('payouts_enabled.eq.true,listed_for_chat.eq.true')
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);

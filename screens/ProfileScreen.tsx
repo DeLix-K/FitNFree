@@ -456,6 +456,16 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
           Deleting your account permanently removes your profile, plans, history, streaks, and
           all other data. This cannot be undone.
         </Text>
+        {Platform.OS !== 'web' && (
+          <Text style={styles.dangerText}>
+            Deleting your account does not cancel a Premium subscription bought through{' '}
+            {Platform.OS === 'ios' ? 'the App Store' : 'Google Play'}. To stop being billed, cancel it in{' '}
+            {Platform.OS === 'ios'
+              ? 'Settings → your name → Subscriptions'
+              : 'Google Play → Payments & subscriptions → Subscriptions'}
+            .
+          </Text>
+        )}
 
         {confirmingDelete ? (
           <View style={styles.confirmRow}>

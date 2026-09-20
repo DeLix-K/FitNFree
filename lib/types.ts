@@ -300,6 +300,7 @@ export type TrainerProfile = {
   price_cents: number;
   stripe_account_id: string | null;
   payouts_enabled: boolean;
+  listed_for_chat: boolean;
   intro_video_url: string | null;
   training_format: TrainingFormat[];
   location_text: string;
