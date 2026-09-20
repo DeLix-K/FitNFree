@@ -6,6 +6,7 @@ import TrainerChatModal from '../components/TrainerChatModal';
 import TrainerVideoPlayer from '../components/TrainerVideoPlayer';
 import { FORMAT_OPTIONS } from '../lib/trainerMatchmaker';
 import { bookSlot, buyPackage, fetchMySessionCredits, fetchOpenSlots, fetchTrainerPackages, fetchTrainerReviews } from '../lib/trainers';
+import { CAN_SELL_DIGITAL_CONTENT } from '../lib/storeRules';
 import { dark } from '../lib/theme';
 import type { OpenTrainerSlot, TrainerProfile, TrainerRating, TrainerReview, TrainerSessionPackage } from '../lib/types';
 
@@ -162,9 +163,11 @@ export default function TrainerProfileScreen({
         {error && <Text style={styles.error}>{error}</Text>}
 
         <View style={styles.actionRow}>
-          <Pressable style={[styles.bookButton, styles.actionButton]} onPress={onBuy} disabled={buying}>
-            {buying ? <ActivityIndicator color="#0a0a0a" /> : <Text style={styles.bookButtonText}>📅 Book Custom Plan</Text>}
-          </Pressable>
+          {CAN_SELL_DIGITAL_CONTENT && (
+            <Pressable style={[styles.bookButton, styles.actionButton]} onPress={onBuy} disabled={buying}>
+              {buying ? <ActivityIndicator color="#0a0a0a" /> : <Text style={styles.bookButtonText}>📅 Book Custom Plan</Text>}
+            </Pressable>
+          )}
           <Pressable style={[styles.messageButton, styles.actionButton]} onPress={() => setChatOpen(true)}>
             <Text style={styles.messageButtonText}>💬 Chat</Text>
           </Pressable>

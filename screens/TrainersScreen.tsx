@@ -17,6 +17,7 @@ import {
   fetchTrainers,
 } from '../lib/trainers';
 import { supabase } from '../lib/supabase';
+import { CAN_SELL_DIGITAL_CONTENT } from '../lib/storeRules';
 import { dark } from '../lib/theme';
 import type { TrainerFormReview, TrainerOrderView, TrainerProfile, TrainerRating, TrainerTimeSlot } from '../lib/types';
 import TrainerProfileScreen from './TrainerProfileScreen';
@@ -157,7 +158,9 @@ export default function TrainersScreen() {
           <>
             <Text style={styles.title}>Trainers</Text>
             <Text style={styles.subtitle}>
-              Book a custom workout plan built for you by a real trainer or nutritionist.
+              {CAN_SELL_DIGITAL_CONTENT
+                ? 'Book a custom workout plan built for you by a real trainer or nutritionist.'
+                : 'Find a real trainer or nutritionist, chat with them, and book live sessions.'}
             </Text>
 
             <Pressable style={styles.matchmakerBanner} onPress={() => setMatchmakerOpen(true)}>
@@ -189,7 +192,9 @@ export default function TrainersScreen() {
               <Pressable style={styles.becomeTrainerCard} onPress={() => setSignupOpen(true)}>
                 <Text style={styles.becomeTrainerTitle}>🏋️ Join as a Verified Trainer → Earn & Build</Text>
                 <Text style={styles.becomeTrainerText}>
-                  Sign up, fill in your profile, add a coaching reel, and start selling custom plans to FitNFree members.
+                  {CAN_SELL_DIGITAL_CONTENT
+                    ? 'Sign up, fill in your profile, add a coaching reel, and start selling custom plans to FitNFree members.'
+                    : 'Sign up, fill in your profile, add a coaching reel, and start coaching FitNFree members.'}
                 </Text>
                 <Text style={styles.becomeTrainerCta}>Get started →</Text>
               </Pressable>

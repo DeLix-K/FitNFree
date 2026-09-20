@@ -1,5 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { FORMAT_OPTIONS } from '../lib/trainerMatchmaker';
+import { CAN_SELL_DIGITAL_CONTENT } from '../lib/storeRules';
 import { dark } from '../lib/theme';
 import type { TrainerProfile, TrainerRating } from '../lib/types';
 import StarRating from './StarRating';
@@ -99,9 +100,11 @@ export default function TrainerCard({
       )}
 
       <View style={styles.actionRow}>
-        <Pressable style={[styles.bookButton, styles.actionButton]} onPress={onBook}>
-          <Text style={styles.bookButtonText}>📅 Book This Trainer</Text>
-        </Pressable>
+        {CAN_SELL_DIGITAL_CONTENT && (
+          <Pressable style={[styles.bookButton, styles.actionButton]} onPress={onBook}>
+            <Text style={styles.bookButtonText}>📅 Book This Trainer</Text>
+          </Pressable>
+        )}
         <Pressable style={[styles.messageButton, styles.actionButton]} onPress={onChat}>
           <Text style={styles.messageButtonText}>💬 Chat</Text>
         </Pressable>
