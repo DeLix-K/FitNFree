@@ -410,9 +410,15 @@ export async function sendReaction(activityId: string, reactionType: ChallengeRe
   const userId = userData.user?.id;
   if (!userId) throw new Error('Not signed in.');
 
+  // A person can only give each reaction once per activity (unique
+  // constraint), so reacting again is a no-op rather than an error --
+  // ignoreDuplicates makes it INSERT ... ON CONFLICT DO NOTHING.
   const { error } = await supabase
     .from('challenge_reactions')
-    .insert({ activity_id: activityId, from_user_id: userId, reaction_type: reactionType });
+    .upsert(
+      { activity_id: activityId, from_user_id: userId, reaction_type: reactionType },
+      { onConflict: 'activity_id,from_user_id,reaction_type', ignoreDuplicates: true }
+    );
 
   if (error) throw new Error(error.message);
 }

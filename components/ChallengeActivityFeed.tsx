@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { activityMessage, fetchChallengeActivity, sendReaction, subscribeToChallengeActivity } from '../lib/challenges';
 import { dark } from '../lib/theme';
@@ -18,6 +18,7 @@ export default function ChallengeActivityFeed({ challengeId }: { challengeId: st
   const [activity, setActivity] = useState<ChallengeActivityView[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const pending = useRef(new Set<string>());
 
   const load = useCallback(async () => {
     try {
@@ -39,12 +40,20 @@ export default function ChallengeActivityFeed({ challengeId }: { challengeId: st
   }, [challengeId, load]);
 
   const handleReact = async (activityId: string, type: 'high_five' | 'boost') => {
+    // Already given (or a tap is in flight): nothing to send.
+    const key = `${activityId}:${type}`;
+    const item = activity.find((a) => a.id === activityId);
+    if (item?.reactions.myReactions.includes(type) || pending.current.has(key)) return;
+    pending.current.add(key);
+
     setError(null);
     try {
       await sendReaction(activityId, type);
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      pending.current.delete(key);
     }
   };
 
