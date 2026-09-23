@@ -1,6 +1,7 @@
 import * as Haptics from 'expo-haptics';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   BUDGET_OPTIONS,
   computeMatches,
@@ -37,6 +38,10 @@ export default function TrainerMatchmakerModal({
   onBook: (trainer: TrainerProfile) => void;
   onChat: (trainer: TrainerProfile) => void;
 }) {
+  // A full-screen Modal draws under the status bar/notch, so the content has
+  // to add the real device insets itself (a fixed padding clipped the title
+  // and close button on iPad and notched phones).
+  const insets = useSafeAreaInsets();
   const [step, setStep] = useState<Step>(1);
   const [focus, setFocus] = useState<FocusKey | null>(null);
   const [format, setFormat] = useState<TrainingFormat | null>(null);
@@ -100,8 +105,8 @@ export default function TrainerMatchmakerModal({
   const stepNumber = typeof step === 'number' ? step : 3;
 
   return (
-    <Modal visible={visible} animationType="slide" onRequestClose={handleClose}>
-      <View style={styles.container}>
+    <Modal visible={visible} animationType="slide" statusBarTranslucent onRequestClose={handleClose}>
+      <View style={[styles.container, { paddingTop: insets.top, paddingBottom: insets.bottom }]}>
         {step !== 'loading' && step !== 'results' && (
           <View style={styles.progressHeader}>
             <View style={styles.progressTrack}>
@@ -216,7 +221,7 @@ export default function TrainerMatchmakerModal({
             </View>
 
             {matches.length === 0 ? (
-              <Text style={styles.empty}>No trainers are accepting orders yet — check back soon.</Text>
+              <Text style={styles.empty}>No trainers are listed yet — check back soon.</Text>
             ) : (
               <>
                 <Text style={styles.groupLabel}>BEST OVERALL MATCH</Text>

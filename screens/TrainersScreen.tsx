@@ -296,7 +296,7 @@ export default function TrainersScreen() {
         data={filteredTrainers}
         keyExtractor={(item) => item.id}
         ListEmptyComponent={
-          <Text style={styles.empty}>No trainers are accepting orders yet — check back soon.</Text>
+          <Text style={styles.empty}>No trainers are listed yet — check back soon.</Text>
         }
         renderItem={({ item }) => {
           const isMe = item.user_id === myUserId;
