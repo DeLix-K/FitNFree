@@ -1,36 +1,14 @@
-import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
+import { byNewest } from './library';
+import { getIsPremium } from './subscription';
 import { supabase } from './supabase';
 import type { Course, CourseLesson, CourseLessonPreview, CourseWithStatus } from './types';
-
-async function invoke<T>(name: string, body?: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke<T & { error?: string }>(name, {
-    body: body ?? {},
-  });
-
-  if (error) {
-    const context = (error as { context?: Response }).context;
-    let detailedMessage: string | undefined;
-    if (context) {
-      try {
-        const errorBody = await context.clone().json();
-        if (errorBody?.error) detailedMessage = errorBody.error;
-      } catch {
-        // fall through
-      }
-    }
-    throw new Error(detailedMessage ?? error.message);
-  }
-
-  if (data?.error) throw new Error(data.error);
-  return data as T;
-}
 
 export async function fetchCourses(): Promise<CourseWithStatus[]> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
 
-  const [coursesResult, previewsResult, enrollmentsResult, progressResult] = await Promise.all([
-    supabase.from('courses').select('*').order('created_at', { ascending: true }),
+  const [coursesResult, previewsResult, enrollmentsResult, progressResult, isPremium] = await Promise.all([
+    supabase.from('courses').select('*'),
     supabase.from('course_lesson_previews').select('*'),
     userId
       ? supabase.from('course_enrollments').select('course_id, status').eq('user_id', userId)
@@ -38,6 +16,7 @@ export async function fetchCourses(): Promise<CourseWithStatus[]> {
     userId
       ? supabase.from('course_lesson_progress').select('lesson_id').eq('user_id', userId)
       : Promise.resolve({ data: [], error: null }),
+    getIsPremium(),
   ]);
 
   if (coursesResult.error) throw new Error(coursesResult.error.message);
@@ -51,7 +30,8 @@ export async function fetchCourses(): Promise<CourseWithStatus[]> {
     courseIdByLesson.set(lesson.id, lesson.course_id);
   }
 
-  const enrolledCourseIds = new Set(
+  // Bought before content moved into Premium -- those buyers keep access.
+  const boughtCourseIds = new Set(
     (enrollmentsResult.data ?? [])
       .filter((e: { status: string }) => e.status === 'paid')
       .map((e: { course_id: string }) => e.course_id)
@@ -64,9 +44,9 @@ export async function fetchCourses(): Promise<CourseWithStatus[]> {
     completedCountByCourse.set(courseId, (completedCountByCourse.get(courseId) ?? 0) + 1);
   }
 
-  return ((coursesResult.data ?? []) as Course[]).map((course) => ({
+  return ((coursesResult.data ?? []) as Course[]).sort(byNewest).map((course) => ({
     ...course,
-    enrolled: enrolledCourseIds.has(course.id),
+    unlocked: course.is_free || isPremium || boughtCourseIds.has(course.id),
     lessonCount: lessonCountByCourse.get(course.id) ?? 0,
     completedCount: completedCountByCourse.get(course.id) ?? 0,
   }));
@@ -133,18 +113,4 @@ export async function markLessonIncomplete(lessonId: string): Promise<void> {
     .eq('lesson_id', lessonId);
 
   if (error) throw new Error(error.message);
-}
-
-export async function buyCourse(courseId: string): Promise<void> {
-  const returnUrl = getCheckoutRedirectUrl();
-
-  const { url } = await invoke<{ url?: string }>('create-course-checkout', {
-    courseId,
-    successUrl: returnUrl,
-    cancelUrl: returnUrl,
-  });
-
-  if (!url) throw new Error('Stripe did not return a checkout URL.');
-
-  await openCheckoutUrl(url);
 }

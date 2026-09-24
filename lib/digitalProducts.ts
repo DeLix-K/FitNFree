@@ -1,52 +1,32 @@
-import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
+import { byNewest } from './library';
+import { getIsPremium } from './subscription';
 import { supabase } from './supabase';
 import type { DigitalProduct, DigitalProductContent, DigitalProductWithStatus } from './types';
-
-async function invoke<T>(name: string, body?: Record<string, unknown>): Promise<T> {
-  const { data, error } = await supabase.functions.invoke<T & { error?: string }>(name, {
-    body: body ?? {},
-  });
-
-  if (error) {
-    const context = (error as { context?: Response }).context;
-    let detailedMessage: string | undefined;
-    if (context) {
-      try {
-        const errorBody = await context.clone().json();
-        if (errorBody?.error) detailedMessage = errorBody.error;
-      } catch {
-        // fall through
-      }
-    }
-    throw new Error(detailedMessage ?? error.message);
-  }
-
-  if (data?.error) throw new Error(data.error);
-  return data as T;
-}
 
 export async function fetchDigitalProducts(): Promise<DigitalProductWithStatus[]> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
 
-  const [productsResult, purchasesResult] = await Promise.all([
-    supabase.from('digital_products').select('*').order('created_at', { ascending: true }),
+  const [productsResult, purchasesResult, isPremium] = await Promise.all([
+    supabase.from('digital_products').select('*'),
     userId
       ? supabase.from('digital_product_purchases').select('product_id, status').eq('user_id', userId)
       : Promise.resolve({ data: [], error: null }),
+    getIsPremium(),
   ]);
 
   if (productsResult.error) throw new Error(productsResult.error.message);
 
-  const ownedIds = new Set(
+  // Bought before content moved into Premium -- those buyers keep access.
+  const boughtIds = new Set(
     (purchasesResult.data ?? [])
       .filter((p: { status: string }) => p.status === 'paid')
       .map((p: { product_id: string }) => p.product_id)
   );
 
-  return ((productsResult.data ?? []) as DigitalProduct[]).map((p) => ({
+  return ((productsResult.data ?? []) as DigitalProduct[]).sort(byNewest).map((p) => ({
     ...p,
-    owned: ownedIds.has(p.id),
+    unlocked: p.is_free || isPremium || boughtIds.has(p.id),
   }));
 }
 
@@ -59,18 +39,4 @@ export async function fetchDigitalProductContent(productId: string): Promise<Dig
 
   if (error) throw new Error(error.message);
   return data;
-}
-
-export async function buyDigitalProduct(productId: string): Promise<void> {
-  const returnUrl = getCheckoutRedirectUrl();
-
-  const { url } = await invoke<{ url?: string }>('create-digital-product-checkout', {
-    productId,
-    successUrl: returnUrl,
-    cancelUrl: returnUrl,
-  });
-
-  if (!url) throw new Error('Stripe did not return a checkout URL.');
-
-  await openCheckoutUrl(url);
 }

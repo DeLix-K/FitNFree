@@ -439,16 +439,23 @@ export type HabitWithStatus = Habit & {
   auto_logged_today: boolean;
 };
 
+// The five library categories. Courses and guides each belong to exactly one.
+export type ContentCategory = 'fitness' | 'weight_management' | 'nutrition' | 'wellness' | 'running';
+
 export type Course = {
   id: string;
   title: string;
   description: string;
-  price_cents: number;
+  price_cents: number; // legacy: content is now free or included with Premium
+  content_category: ContentCategory;
+  is_free: boolean;
+  published_at: string;
   created_at: string;
 };
 
 export type CourseWithStatus = Course & {
-  enrolled: boolean;
+  // Readable by this user: free, included with their Premium, or bought earlier.
+  unlocked: boolean;
   lessonCount: number;
   completedCount: number;
 };
@@ -470,24 +477,18 @@ export type CourseLesson = {
   created_at: string;
 };
 
-export type DigitalProductCategory =
-  | 'workout_guides'
-  | 'nutrition_guides'
-  | 'training_programmes'
-  | 'transformation_plans'
-  | 'beginner_guides'
-  | 'weight_loss';
-
 export type DigitalProduct = {
   id: string;
   title: string;
   description: string;
-  price_cents: number;
-  category: DigitalProductCategory;
+  price_cents: number; // legacy: content is now free or included with Premium
+  content_category: ContentCategory;
+  is_free: boolean;
+  published_at: string;
   created_at: string;
 };
 
-export type DigitalProductWithStatus = DigitalProduct & { owned: boolean };
+export type DigitalProductWithStatus = DigitalProduct & { unlocked: boolean };
 
 export type DigitalProductContent = {
   product_id: string;

@@ -1,19 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import ContentBadges from '../components/ContentBadges';
+import PremiumUnlock from '../components/PremiumUnlock';
+import { onPremiumChanged } from '../lib/billing';
 import {
-  buyCourse,
   fetchCompletedLessonIds,
   fetchCourseLessons,
   markLessonComplete,
   markLessonIncomplete,
 } from '../lib/courses';
+import { getIsPremium } from '../lib/subscription';
 import { supabase } from '../lib/supabase';
 import { dark } from '../lib/theme';
 import type { Course, CourseLesson, CourseLessonPreview } from '../lib/types';
-
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
 
 export default function CourseDetailScreen({
   courseId,
@@ -28,23 +27,25 @@ export default function CourseDetailScreen({
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [buying, setBuying] = useState(false);
+  const [isPremium, setIsPremium] = useState(false);
   const [busyLessonId, setBusyLessonId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const [courseResult, lessonsResult, completed] = await Promise.all([
+      const [courseResult, lessonsResult, completed, premium] = await Promise.all([
         supabase.from('courses').select('*').eq('id', courseId).single(),
         fetchCourseLessons(courseId),
         fetchCompletedLessonIds(),
+        getIsPremium(),
       ]);
       if (courseResult.error) throw new Error(courseResult.error.message);
       setCourse(courseResult.data);
       setPreviews(lessonsResult.previews);
       setFullById(lessonsResult.fullById);
       setCompletedIds(completed);
+      setIsPremium(premium);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     }
@@ -55,20 +56,14 @@ export default function CourseDetailScreen({
     load().finally(() => setLoading(false));
   }, [load]);
 
-  const enrolled = previews.length > 0 && fullById.size === previews.length;
+  // Buying Premium (or restoring it) unlocks this course in place.
+  useEffect(() => onPremiumChanged(() => void load()), [load]);
+
+  // Free, included with Premium, or bought before content moved into Premium.
+  const enrolled =
+    !!course && (course.is_free || isPremium || (previews.length > 0 && fullById.size === previews.length));
   const completedInCourse = previews.filter((p) => completedIds.has(p.id)).length;
   const allComplete = enrolled && previews.length > 0 && completedInCourse === previews.length;
-
-  const handleBuy = async () => {
-    setBuying(true);
-    setError(null);
-    try {
-      await buyCourse(courseId);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setBuying(false);
-    }
-  };
 
   const toggleComplete = async (lessonId: string) => {
     setBusyLessonId(lessonId);
@@ -99,6 +94,9 @@ export default function CourseDetailScreen({
         <Text style={styles.back}>{'< Courses'}</Text>
       </Pressable>
 
+      {course && (
+        <ContentBadges isFree={course.is_free} publishedAt={course.published_at} unlocked={enrolled} />
+      )}
       <Text style={styles.title}>{course?.title}</Text>
       {course?.description ? <Text style={styles.description}>{course.description}</Text> : null}
       {error && <Text style={styles.error}>{error}</Text>}
@@ -114,13 +112,7 @@ export default function CourseDetailScreen({
       )}
 
       {!enrolled && course && (
-        <Pressable style={styles.buyButton} onPress={handleBuy} disabled={buying}>
-          {buying ? (
-            <ActivityIndicator color="#0a0a0a" />
-          ) : (
-            <Text style={styles.buyButtonText}>Buy Course — {formatPrice(course.price_cents)}</Text>
-          )}
-        </Pressable>
+        <PremiumUnlock message="This course is included with Premium. Look for the FREE badge on starter courses." />
       )}
 
       <Text style={styles.sectionTitle}>Lessons</Text>

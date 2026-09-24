@@ -1,15 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import ContentBadges from '../components/ContentBadges';
+import SegmentedHeader from '../components/SegmentedHeader';
+import { onPremiumChanged } from '../lib/billing';
 import { fetchCourses } from '../lib/courses';
+import { CATEGORY_FILTER_SEGMENTS, type CategoryFilter } from '../lib/library';
 import { dark } from '../lib/theme';
 import type { CourseWithStatus } from '../lib/types';
 import CourseDetailScreen from './CourseDetailScreen';
 
 type Mode = { mode: 'list' } | { mode: 'detail'; courseId: string };
-
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
 
 // Real photos (Pexels License, free for commercial use, no attribution
 // required) -- matched by keyword since courses are admin-authored/DB-driven,
@@ -21,8 +21,10 @@ const COURSE_IMAGES = {
   strength: require('../assets/photos/course_strength.jpg'),
 } as const;
 
-function pickCourseImage(title: string) {
-  const t = title.toLowerCase();
+function pickCourseImage(course: CourseWithStatus) {
+  if (course.content_category === 'nutrition') return COURSE_IMAGES.nutrition;
+  if (course.content_category === 'running') return COURSE_IMAGES.hiit;
+  const t = course.title.toLowerCase();
   if (/nutrition|macro|meal|diet/.test(t)) return COURSE_IMAGES.nutrition;
   if (/hiit|hypertrophy|toning|transformation|cardio|bodyweight/.test(t)) return COURSE_IMAGES.hiit;
   return COURSE_IMAGES.strength;
@@ -33,6 +35,7 @@ export default function CoursesScreen() {
   const [courses, setCourses] = useState<CourseWithStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState<CategoryFilter>('all');
 
   const load = useCallback(async () => {
     setError(null);
@@ -49,6 +52,14 @@ export default function CoursesScreen() {
     load().finally(() => setLoading(false));
   }, [view.mode, load]);
 
+  // A Premium purchase (or restore) unlocks courses without leaving the screen.
+  useEffect(() => onPremiumChanged(() => void load()), [load]);
+
+  const visible = useMemo(
+    () => (category === 'all' ? courses : courses.filter((c) => c.content_category === category)),
+    [courses, category]
+  );
+
   if (view.mode === 'detail') {
     return (
       <CourseDetailScreen courseId={view.courseId} onBack={() => setView({ mode: 'list' })} />
@@ -64,37 +75,41 @@ export default function CoursesScreen() {
   }
 
   return (
+    <View style={styles.container}>
+    <SegmentedHeader segments={CATEGORY_FILTER_SEGMENTS} active={category} onChange={setCategory} />
     <FlatList
-      style={styles.container}
+      style={styles.list}
       contentContainerStyle={styles.content}
       ListHeaderComponent={
         <>
           <Text style={styles.title}>Courses</Text>
-          <Text style={styles.subtitle}>Structured courses to level up your training.</Text>
+          <Text style={styles.subtitle}>Free starters to get going, and the full library with Premium.</Text>
           {error && <Text style={styles.error}>{error}</Text>}
         </>
       }
-      data={courses}
+      data={visible}
       keyExtractor={(item) => item.id}
       ListEmptyComponent={
-        <Text style={styles.empty}>No courses available yet — check back soon.</Text>
+        <Text style={styles.empty}>
+          {category === 'all' ? 'No courses available yet — check back soon.' : 'Nothing in this category yet — new content is added regularly.'}
+        </Text>
       }
       renderItem={({ item }) => {
         const pct = item.lessonCount > 0 ? item.completedCount / item.lessonCount : 0;
         return (
           <Pressable style={styles.card} onPress={() => setView({ mode: 'detail', courseId: item.id })}>
-            <Image source={pickCourseImage(item.title)} style={styles.cardImage} resizeMode="cover" />
+            <Image source={pickCourseImage(item)} style={styles.cardImage} resizeMode="cover" />
             <View style={styles.cardBody}>
+            <ContentBadges isFree={item.is_free} publishedAt={item.published_at} unlocked={item.unlocked} />
             <View style={styles.cardHeader}>
               <Text style={styles.cardTitle}>{item.title}</Text>
-              {!item.enrolled && <Text style={styles.cardPrice}>{formatPrice(item.price_cents)}</Text>}
             </View>
             {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
             <Text style={styles.cardMeta}>
               {item.lessonCount} {item.lessonCount === 1 ? 'lesson' : 'lessons'}
             </Text>
 
-            {item.enrolled ? (
+            {item.unlocked ? (
               <View style={styles.progressWrap}>
                 <View style={styles.progressTrack}>
                   <View style={[styles.progressFill, { width: `${pct * 100}%` }]} />
@@ -104,13 +119,14 @@ export default function CoursesScreen() {
                 </Text>
               </View>
             ) : (
-              <Text style={styles.buyHint}>Tap to view syllabus & buy →</Text>
+              <Text style={styles.buyHint}>Tap to view the syllabus · Included with Premium →</Text>
             )}
             </View>
           </Pressable>
         );
       }}
     />
+    </View>
   );
 }
 
@@ -118,6 +134,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: dark.background,
+  },
+  list: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,
@@ -179,11 +198,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     flex: 1,
     color: dark.text,
-  },
-  cardPrice: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: dark.accent,
   },
   cardDescription: {
     fontSize: 13,

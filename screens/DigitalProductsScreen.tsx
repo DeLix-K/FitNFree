@@ -1,34 +1,13 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import {
-  buyDigitalProduct,
-  fetchDigitalProductContent,
-  fetchDigitalProducts,
-} from '../lib/digitalProducts';
+import ContentBadges from '../components/ContentBadges';
+import PremiumUnlock from '../components/PremiumUnlock';
+import SegmentedHeader from '../components/SegmentedHeader';
+import { onPremiumChanged } from '../lib/billing';
+import { fetchDigitalProductContent, fetchDigitalProducts } from '../lib/digitalProducts';
+import { CATEGORY_FILTER_SEGMENTS, CATEGORY_LABELS, CONTENT_CATEGORIES, type CategoryFilter } from '../lib/library';
 import { dark } from '../lib/theme';
-import type { DigitalProductCategory, DigitalProductContent, DigitalProductWithStatus } from '../lib/types';
-
-const CATEGORY_ORDER: DigitalProductCategory[] = [
-  'workout_guides',
-  'nutrition_guides',
-  'training_programmes',
-  'transformation_plans',
-  'beginner_guides',
-  'weight_loss',
-];
-
-const CATEGORY_LABELS: Record<DigitalProductCategory, string> = {
-  workout_guides: 'Workout Guides',
-  nutrition_guides: 'Nutrition Guides',
-  training_programmes: 'Training Programmes',
-  transformation_plans: 'Transformation Plans',
-  beginner_guides: 'Beginner Guides',
-  weight_loss: 'Weight Loss Guides',
-};
-
-function formatPrice(cents: number): string {
-  return `$${(cents / 100).toFixed(2)}`;
-}
+import type { DigitalProductContent, DigitalProductWithStatus } from '../lib/types';
 
 export default function DigitalProductsScreen() {
   const [products, setProducts] = useState<DigitalProductWithStatus[]>([]);
@@ -36,8 +15,8 @@ export default function DigitalProductsScreen() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [content, setContent] = useState<Record<string, DigitalProductContent | null>>({});
   const [contentLoading, setContentLoading] = useState(false);
-  const [buyingId, setBuyingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [category, setCategory] = useState<CategoryFilter>('all');
 
   const load = useCallback(async () => {
     setError(null);
@@ -53,12 +32,17 @@ export default function DigitalProductsScreen() {
     load().finally(() => setLoading(false));
   }, [load]);
 
+  // A Premium purchase (or restore) unlocks guides without leaving the screen.
+  useEffect(() => onPremiumChanged(() => void load()), [load]);
+
   const sections = useMemo(() => {
-    return CATEGORY_ORDER.map((category) => ({
-      category,
-      items: products.filter((p) => p.category === category),
-    })).filter((s) => s.items.length > 0);
-  }, [products]);
+    return CONTENT_CATEGORIES.filter((c) => category === 'all' || c.value === category)
+      .map((c) => ({
+        category: c.value,
+        items: products.filter((p) => p.content_category === c.value),
+      }))
+      .filter((s) => s.items.length > 0);
+  }, [products, category]);
 
   const toggleExpand = async (product: DigitalProductWithStatus) => {
     if (expandedId === product.id) {
@@ -66,7 +50,7 @@ export default function DigitalProductsScreen() {
       return;
     }
     setExpandedId(product.id);
-    if (product.owned && content[product.id] === undefined) {
+    if (product.unlocked && content[product.id] === undefined) {
       setContentLoading(true);
       try {
         const c = await fetchDigitalProductContent(product.id);
@@ -79,17 +63,6 @@ export default function DigitalProductsScreen() {
     }
   };
 
-  const handleBuy = async (productId: string) => {
-    setBuyingId(productId);
-    setError(null);
-    try {
-      await buyDigitalProduct(productId);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-      setBuyingId(null);
-    }
-  };
-
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -99,73 +72,68 @@ export default function DigitalProductsScreen() {
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Guides & Plans</Text>
-      <Text style={styles.subtitle}>
-        One-time downloads: meal plans, transformation programs, and training guides.
-      </Text>
-      {error && <Text style={styles.error}>{error}</Text>}
+    <View style={styles.container}>
+      <SegmentedHeader segments={CATEGORY_FILTER_SEGMENTS} active={category} onChange={setCategory} />
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+        <Text style={styles.title}>Guides & Plans</Text>
+        <Text style={styles.subtitle}>
+          Free starter guides to get going, and the full library of programmes and plans with Premium.
+        </Text>
+        {error && <Text style={styles.error}>{error}</Text>}
 
-      {sections.length === 0 && (
-        <Text style={styles.empty}>Nothing available yet — check back soon.</Text>
-      )}
+        {sections.length === 0 && (
+          <Text style={styles.empty}>
+            {category === 'all'
+              ? 'Nothing available yet — check back soon.'
+              : 'Nothing in this category yet — new content is added regularly.'}
+          </Text>
+        )}
 
-      {sections.map((section) => (
-        <View key={section.category} style={styles.section}>
-          <Text style={styles.sectionTitle}>{CATEGORY_LABELS[section.category]}</Text>
+        {sections.map((section) => (
+          <View key={section.category} style={styles.section}>
+            <Text style={styles.sectionTitle}>{CATEGORY_LABELS[section.category]}</Text>
 
-          {section.items.map((item) => {
-            const expanded = expandedId === item.id;
-            const productContent = content[item.id];
+            {section.items.map((item) => {
+              const expanded = expandedId === item.id;
+              const productContent = content[item.id];
 
-            return (
-              <View key={item.id} style={styles.card}>
-                <Pressable onPress={() => toggleExpand(item)}>
-                  <View style={styles.cardHeader}>
-                    <Text style={styles.cardTitle}>{item.title}</Text>
-                    {!item.owned && <Text style={styles.cardPrice}>{formatPrice(item.price_cents)}</Text>}
-                  </View>
-                  {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
-                </Pressable>
-
-                {!item.owned ? (
-                  <Pressable
-                    style={styles.buyButton}
-                    onPress={() => handleBuy(item.id)}
-                    disabled={buyingId === item.id}
-                  >
-                    {buyingId === item.id ? (
-                      <ActivityIndicator color="#0a0a0a" size="small" />
-                    ) : (
-                      <Text style={styles.buyButtonText}>Buy — {formatPrice(item.price_cents)}</Text>
-                    )}
-                  </Pressable>
-                ) : expanded ? (
-                  contentLoading ? (
-                    <ActivityIndicator style={{ marginTop: 12 }} color={dark.accent} />
-                  ) : (
-                    <View style={styles.contentBox}>
-                      {productContent?.body ? (
-                        <Text style={styles.contentText}>{productContent.body}</Text>
-                      ) : null}
-                      {productContent?.file_url ? (
-                        <Pressable onPress={() => Linking.openURL(productContent.file_url)}>
-                          <Text style={styles.fileLink}>⬇ Download</Text>
-                        </Pressable>
-                      ) : null}
-                    </View>
-                  )
-                ) : (
+              return (
+                <View key={item.id} style={styles.card}>
                   <Pressable onPress={() => toggleExpand(item)}>
-                    <Text style={styles.ownedHint}>✓ Owned — tap to view</Text>
+                    <ContentBadges isFree={item.is_free} publishedAt={item.published_at} unlocked={item.unlocked} />
+                    <View style={styles.cardHeader}>
+                      <Text style={styles.cardTitle}>{item.title}</Text>
+                    </View>
+                    {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
                   </Pressable>
-                )}
-              </View>
-            );
-          })}
-        </View>
-      ))}
-    </ScrollView>
+
+                  {!item.unlocked ? (
+                    <PremiumUnlock message="Included with Premium." />
+                  ) : expanded ? (
+                    contentLoading && productContent === undefined ? (
+                      <ActivityIndicator style={{ marginTop: 12 }} color={dark.accent} />
+                    ) : (
+                      <View style={styles.contentBox}>
+                        {productContent?.body ? <Text style={styles.contentText}>{productContent.body}</Text> : null}
+                        {productContent?.file_url ? (
+                          <Pressable onPress={() => Linking.openURL(productContent.file_url)}>
+                            <Text style={styles.fileLink}>⬇ Download</Text>
+                          </Pressable>
+                        ) : null}
+                      </View>
+                    )
+                  ) : (
+                    <Pressable onPress={() => toggleExpand(item)}>
+                      <Text style={styles.ownedHint}>Tap to read →</Text>
+                    </Pressable>
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        ))}
+      </ScrollView>
+    </View>
   );
 }
 
@@ -173,6 +141,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: dark.background,
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,
@@ -233,26 +204,10 @@ const styles = StyleSheet.create({
     flex: 1,
     color: dark.text,
   },
-  cardPrice: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: dark.accent,
-  },
   cardDescription: {
     fontSize: 13,
     color: dark.textMuted,
     marginTop: 6,
-  },
-  buyButton: {
-    backgroundColor: dark.accent,
-    borderRadius: 8,
-    paddingVertical: 12,
-    alignItems: 'center',
-    marginTop: 14,
-  },
-  buyButtonText: {
-    color: '#0a0a0a',
-    fontWeight: '700',
   },
   ownedHint: {
     color: dark.accent,
