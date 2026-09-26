@@ -22,7 +22,7 @@ type Mode = 'signIn' | 'signUp' | 'forgotPassword';
 
 export default function AuthScreen() {
   const [mode, setMode] = useState<Mode>('signIn');
-  const [email, setEmail] = useState('');
+  const [rawEmail, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -37,6 +37,10 @@ export default function AuthScreen() {
   const handleSubmit = async () => {
     setError(null);
     setMessage(null);
+
+    // Stray spaces from copy-and-paste (e.g. credentials copied from another page)
+    // must not make a correct email fail to match.
+    const email = rawEmail.trim();
 
     if (mode === 'forgotPassword') {
       if (!email) {
@@ -68,10 +72,16 @@ export default function AuthScreen() {
     }
 
     setLoading(true);
-    const { error: authError } =
+    let { error: authError } =
       mode === 'signUp'
         ? await supabase.auth.signUp({ email, password })
         : await supabase.auth.signInWithPassword({ email, password });
+
+    // A password pasted with a trailing space or line break is the usual reason a
+    // correct password is rejected. Only retry when trimming actually changes it.
+    if (authError && mode === 'signIn' && password !== password.trim()) {
+      ({ error: authError } = await supabase.auth.signInWithPassword({ email, password: password.trim() }));
+    }
     setLoading(false);
 
     if (authError) {
@@ -112,7 +122,7 @@ export default function AuthScreen() {
             placeholderTextColor="#8a8a8a"
             autoCapitalize="none"
             keyboardType="email-address"
-            value={email}
+            value={rawEmail}
             onChangeText={setEmail}
           />
           {mode !== 'forgotPassword' && (
