@@ -160,7 +160,7 @@ export default function LogMealModal({
     setStage('analyzing');
     setError(null);
     try {
-      const reply = await askClaude(buildVoiceFoodEstimatePrompt(transcript));
+      const reply = await askClaude(buildVoiceFoodEstimatePrompt(transcript), undefined, { routine: true });
       const est = parseInstantFoodEstimate(reply);
       if (!est) throw new Error("Couldn't understand that — try describing it differently.");
       saveHistoryEntry('food_scan', reply, transcript);
@@ -199,7 +199,7 @@ export default function LogMealModal({
       const mimeType = asset.mimeType ?? 'image/jpeg';
       setPhoto({ base64: asset.base64, mimeType, uri: asset.uri });
       setStage('analyzing');
-      const reply = await askClaude(buildPhotoFoodEstimatePrompt(), { data: asset.base64, mediaType: mimeType });
+      const reply = await askClaude(buildPhotoFoodEstimatePrompt(), { data: asset.base64, mediaType: mimeType }, { routine: true });
       const est = parseInstantFoodEstimate(reply);
       if (!est) throw new Error("Couldn't read that photo — try Search or Voice Log instead.");
       saveHistoryEntry('food_scan', reply);
@@ -275,7 +275,7 @@ export default function LogMealModal({
     setAiSearchResult(null);
     setMatches([]);
     try {
-      const reply = await askClaude(buildNutritionSearchPrompt(trimmed));
+      const reply = await askClaude(buildNutritionSearchPrompt(trimmed), undefined, { routine: true });
       setAiSearchResult(reply);
       saveHistoryEntry('nutrition_search', reply, trimmed);
       aiGate.refresh();

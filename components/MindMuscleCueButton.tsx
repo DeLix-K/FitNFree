@@ -35,7 +35,7 @@ export default function MindMuscleCueButton({ exercise }: { exercise: Exercise }
     setLoading(true);
     setError(null);
     try {
-      const reply = await askClaude(buildMindMuscleCuePrompt(exercise));
+      const reply = await askClaude(buildMindMuscleCuePrompt(exercise), undefined, { routine: true });
       setCue(reply);
       speak(reply);
       setSpeaking(true);

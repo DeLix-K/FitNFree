@@ -24,7 +24,7 @@ export default function FillRemainingMacrosCard({
     setLoading(true);
     setError(null);
     try {
-      const reply = await askClaude(buildFillRemainingMacrosPrompt(remaining));
+      const reply = await askClaude(buildFillRemainingMacrosPrompt(remaining), undefined, { routine: true });
       setResult(reply);
       saveHistoryEntry('nutrition_search', reply, 'fill remaining macros');
       aiGate.refresh();

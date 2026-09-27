@@ -27,8 +27,22 @@ async function invokeAskClaude(body: Record<string, unknown>): Promise<string> {
   return data?.reply ?? '';
 }
 
-export async function askClaude(prompt: string, image?: ImageInput): Promise<string> {
-  return invokeAskClaude(image ? { prompt, image } : { prompt });
+// `routine: true` marks a call as a genuinely routine, non-personalized
+// lookup (nutrition search, a per-exercise cue, equipment/food/menu
+// identification) -- the server may answer it with a cheaper model and/or a
+// cached reply from another user's identical request. Never set this for
+// anything personalized or sensitive; see ask-claude/index.ts for what it
+// actually does.
+export async function askClaude(
+  prompt: string,
+  image?: ImageInput,
+  opts?: { routine?: boolean }
+): Promise<string> {
+  return invokeAskClaude({
+    prompt,
+    ...(image ? { image } : {}),
+    ...(opts?.routine ? { routine: true } : {}),
+  });
 }
 
 export async function askClaudeChat(messages: ChatMessage[], system?: string): Promise<string> {

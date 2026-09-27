@@ -62,7 +62,11 @@ export default function MenuScannerModal({
         return;
       }
       setLoading(true);
-      const reply = await askClaude(buildMenuScanPrompt(remaining), { data: asset.base64, mediaType: asset.mimeType ?? 'image/jpeg' });
+      const reply = await askClaude(
+        buildMenuScanPrompt(remaining),
+        { data: asset.base64, mediaType: asset.mimeType ?? 'image/jpeg' },
+        { routine: true }
+      );
       const parsed = parseMenuScanItems(reply);
       if (parsed.length === 0) throw new Error("Couldn't read any dishes from that photo — try a clearer shot of the menu.");
       setItems(parsed);

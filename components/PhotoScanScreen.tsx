@@ -71,10 +71,13 @@ export default function PhotoScanScreen({
 
     setLoading(true);
     try {
-      const reply = await askClaude(prompt, {
-        data: asset.base64,
-        mediaType: asset.mimeType ?? guessMediaType(asset.uri),
-      });
+      // Photo identification (equipment/food) is a routine lookup, not a
+      // personalized one -- eligible for the cheaper model / shared cache.
+      const reply = await askClaude(
+        prompt,
+        { data: asset.base64, mediaType: asset.mimeType ?? guessMediaType(asset.uri) },
+        { routine: true }
+      );
       setResult(reply);
       saveHistoryEntry(historyKind, reply);
       aiGate.refresh();
