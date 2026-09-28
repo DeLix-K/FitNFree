@@ -1,0 +1,140 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1500 985" font-family="-apple-system, Segoe UI, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b7280"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1500" height="985" fill="#ffffff"/>
+
+  <text x="750" y="42" text-anchor="middle" font-size="26" font-weight="700" fill="#111111">FitNFree — Simple App Architecture</text>
+  <text x="750" y="66" text-anchor="middle" font-size="13" fill="#666666">One React Native / Expo codebase, three targets</text>
+
+  <!-- Layer 1: Clients -->
+  <text x="60" y="108" font-size="13" font-weight="700" fill="#65a30d">CLIENTS (one TypeScript codebase)</text>
+  <g>
+    <rect x="60" y="118" width="260" height="70" rx="12" fill="#f7fee7" stroke="#a3e635" stroke-width="2"/>
+    <text x="190" y="148" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">iOS App</text>
+    <text x="190" y="168" text-anchor="middle" font-size="11" fill="#555555">Apple In-App Purchase</text>
+  </g>
+  <g>
+    <rect x="350" y="118" width="260" height="70" rx="12" fill="#f7fee7" stroke="#a3e635" stroke-width="2"/>
+    <text x="480" y="148" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">Android App</text>
+    <text x="480" y="168" text-anchor="middle" font-size="11" fill="#555555">Google Play Billing</text>
+  </g>
+  <g>
+    <rect x="640" y="118" width="260" height="70" rx="12" fill="#f7fee7" stroke="#a3e635" stroke-width="2"/>
+    <text x="770" y="148" text-anchor="middle" font-size="15" font-weight="700" fill="#1a1a1a">Web App</text>
+    <text x="770" y="168" text-anchor="middle" font-size="11" fill="#555555">Stripe Checkout · Vercel</text>
+  </g>
+  <g>
+    <rect x="930" y="118" width="260" height="70" rx="12" fill="#fafafa" stroke="#cccccc" stroke-width="2" stroke-dasharray="4,3"/>
+    <text x="1060" y="148" text-anchor="middle" font-size="14" font-weight="700" fill="#444444">EAS Build / Submit</text>
+    <text x="1060" y="168" text-anchor="middle" font-size="11" fill="#777777">builds &amp; ships iOS/Android</text>
+  </g>
+
+  <!-- Arrows down to Supabase -->
+  <line x1="190" y1="188" x2="450" y2="248" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="480" y1="188" x2="480" y2="248" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="770" y1="188" x2="520" y2="248" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="900" y="218" text-anchor="middle" font-size="11" fill="#888888">signed-in requests (JWT), every call</text>
+
+  <!-- Layer 2: Supabase -->
+  <rect x="60" y="256" width="1380" height="230" rx="16" fill="#eef2ff" stroke="#818cf8" stroke-width="2"/>
+  <text x="80" y="284" font-size="14" font-weight="700" fill="#4338ca">SUPABASE (backend)</text>
+
+  <g>
+    <rect x="90" y="300" width="220" height="70" rx="10" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.5"/>
+    <text x="200" y="332" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a1a">Auth</text>
+    <text x="200" y="350" text-anchor="middle" font-size="10.5" fill="#666666">email + password</text>
+  </g>
+  <g>
+    <rect x="340" y="300" width="260" height="70" rx="10" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.5"/>
+    <text x="470" y="326" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a1a">Postgres + Row-Level Security</text>
+    <text x="470" y="346" text-anchor="middle" font-size="10.5" fill="#666666">the real access control — every table</text>
+    <text x="470" y="360" text-anchor="middle" font-size="10.5" fill="#666666">"own rows only" by default</text>
+  </g>
+  <g>
+    <rect x="630" y="300" width="180" height="70" rx="10" fill="#ffffff" stroke="#a5b4fc" stroke-width="1.5"/>
+    <text x="720" y="332" text-anchor="middle" font-size="14" font-weight="700" fill="#1a1a1a">Storage</text>
+    <text x="720" y="350" text-anchor="middle" font-size="10.5" fill="#666666">trainer media</text>
+  </g>
+
+  <rect x="90" y="390" width="1320" height="80" rx="10" fill="#ffffff" stroke="#818cf8" stroke-width="1.5"/>
+  <text x="110" y="412" font-size="13" font-weight="700" fill="#1a1a1a">Edge Functions (Deno) — every secret key / trusted operation lives here</text>
+  <text x="110" y="432" font-size="11" fill="#555555">ask-claude · verify-apple-purchase · verify-google-purchase · stripe-webhook · apple/google-notifications</text>
+  <text x="110" y="450" font-size="11" fill="#555555">create-*-checkout (Stripe) · merch-catalog · trainer-* · oura-* · delete-account</text>
+
+  <!-- Arrows down to third-party -->
+  <line x1="470" y1="486" x2="470" y2="540" stroke="#6b7280" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="600" y="516" text-anchor="middle" font-size="11" fill="#888888">verified purchases · AI prompts · order submission</text>
+
+  <!-- Layer 3: Third-party services -->
+  <text x="60" y="552" font-size="13" font-weight="700" fill="#b45309">THIRD-PARTY SERVICES (called only from Edge Functions)</text>
+
+  <g>
+    <rect x="60" y="562" width="220" height="72" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="170" y="592" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">Anthropic Claude</text>
+    <text x="170" y="610" text-anchor="middle" font-size="10.5" fill="#666666">AI Coach, scans, insights</text>
+  </g>
+  <g>
+    <rect x="300" y="562" width="220" height="72" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="410" y="586" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">Payments</text>
+    <text x="410" y="604" text-anchor="middle" font-size="10.5" fill="#666666">Stripe · Apple IAP</text>
+    <text x="410" y="618" text-anchor="middle" font-size="10.5" fill="#666666">Google Play Billing</text>
+  </g>
+  <g>
+    <rect x="540" y="562" width="220" height="72" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="650" y="592" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">Printful</text>
+    <text x="650" y="610" text-anchor="middle" font-size="10.5" fill="#666666">merch catalog + fulfilment</text>
+  </g>
+  <g>
+    <rect x="780" y="562" width="220" height="72" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="890" y="592" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">Oura</text>
+    <text x="890" y="610" text-anchor="middle" font-size="10.5" fill="#666666">optional sleep/readiness sync</text>
+  </g>
+  <g>
+    <rect x="1020" y="562" width="220" height="72" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="1130" y="586" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">USDA / Open Food Facts</text>
+    <text x="1130" y="604" text-anchor="middle" font-size="10.5" fill="#666666">nutrition + barcode lookup</text>
+  </g>
+  <g>
+    <rect x="1260" y="562" width="180" height="72" rx="10" fill="#fffbeb" stroke="#f59e0b" stroke-width="1.5"/>
+    <text x="1350" y="592" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">YouTube</text>
+    <text x="1350" y="610" text-anchor="middle" font-size="10.5" fill="#666666">embedded videos</text>
+  </g>
+
+  <!-- Principles box -->
+  <rect x="60" y="672" width="1380" height="150" rx="14" fill="#f3f4f6" stroke="#9ca3af" stroke-width="1.5"/>
+  <text x="80" y="700" font-size="14" font-weight="700" fill="#111111">A few rules that hold everywhere in this app</text>
+  <text x="80" y="726" font-size="12" fill="#333333">1. The client never holds a secret key and never talks to a third-party service directly for anything that costs money or moves data —</text>
+  <text x="100" y="744" font-size="12" fill="#333333">   an Edge Function always sits in between.</text>
+  <text x="80" y="766" font-size="12" fill="#333333">2. Access control is enforced by Postgres Row-Level Security, not by app-side "if" checks — the database itself refuses a bad request.</text>
+  <text x="80" y="788" font-size="12" fill="#333333">3. A purchase is only ever trusted after the server independently re-verifies it with Apple, Google, or Stripe — never from client say-so.</text>
+  <text x="80" y="808" font-size="12" fill="#333333">4. What can be sold where is decided by platform (Apple/Google reject digital-content sales that bypass their billing) — see §8 of the docs.</text>
+
+  <!-- Deployment strip -->
+  <text x="60" y="852" font-size="13" font-weight="700" fill="#0369a1">DEPLOYMENT</text>
+  <g>
+    <rect x="60" y="862" width="300" height="64" rx="10" fill="#f0f9ff" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="210" y="888" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">GitHub (main) → Vercel</text>
+    <text x="210" y="906" text-anchor="middle" font-size="10.5" fill="#666666">web app, auto-deploy on push</text>
+  </g>
+  <g>
+    <rect x="390" y="862" width="340" height="64" rx="10" fill="#f0f9ff" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="560" y="888" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">EAS Build → App Store / Play Console</text>
+    <text x="560" y="906" text-anchor="middle" font-size="10.5" fill="#666666">manual, per release</text>
+  </g>
+  <g>
+    <rect x="760" y="862" width="340" height="64" rx="10" fill="#f0f9ff" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="930" y="888" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">Supabase CLI → Edge Functions</text>
+    <text x="930" y="906" text-anchor="middle" font-size="10.5" fill="#666666">deployed independently of app builds</text>
+  </g>
+  <g>
+    <rect x="1130" y="862" width="310" height="64" rx="10" fill="#f0f9ff" stroke="#38bdf8" stroke-width="1.5"/>
+    <text x="1285" y="888" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a1a">SQL editor → Postgres</text>
+    <text x="1285" y="906" text-anchor="middle" font-size="10.5" fill="#666666">hand-run migration files</text>
+  </g>
+
+  <text x="750" y="960" text-anchor="middle" font-size="11" fill="#999999">FitNFree · com.teamk.fitnfree · full detail in FitNFree-Documentation.md/pdf</text>
+</svg>
