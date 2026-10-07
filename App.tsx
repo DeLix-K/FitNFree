@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import AppShell, { type Tab } from './components/AppShell';
+import SubscriptionPaywall from './components/SubscriptionPaywall';
 import { useAuth } from './hooks/useAuth';
 import { CartProvider } from './lib/cartContext';
 import { exchangeOuraCode } from './lib/oura';
@@ -136,6 +137,7 @@ export default function App() {
           {activeTab === 'videos' && <ManageVideosScreen />}
           {activeTab === 'more' && <MoreScreen session={session} onNavigate={setActiveTab} />}
         </AppShell>
+        <SubscriptionPaywall />
         </CartProvider>
       ) : (
         <AuthScreen />

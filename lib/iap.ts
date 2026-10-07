@@ -179,3 +179,26 @@ export async function restorePremiumPurchases(): Promise<boolean> {
   if (Platform.OS === 'ios') await restorePurchases();
   return verifyOwnedPremium();
 }
+
+export interface PremiumProductInfo {
+  title: string;
+  // The store's own formatted, localised price (e.g. "£9.99"). Never hardcoded:
+  // the price differs by country and Apple/Google are the source of truth.
+  displayPrice: string;
+}
+
+// What the subscription screen shows before a purchase. Returns null if the
+// store can't be reached or doesn't return a price -- the screen then refuses to
+// offer the purchase rather than ask someone to subscribe without seeing the cost.
+export async function loadPremiumProductInfo(): Promise<PremiumProductInfo | null> {
+  await ensureConnection();
+  const products = (await fetchProducts({ skus: [PREMIUM_SKU], type: 'subs' })) as unknown as
+    | { id?: string; title?: string | null; displayName?: string | null; displayPrice?: string | null }[]
+    | null;
+  const product = products?.find((p) => p.id === PREMIUM_SKU) ?? products?.[0];
+  if (!product?.displayPrice) return null;
+  return {
+    title: product.title || product.displayName || 'FitNFree Premium',
+    displayPrice: product.displayPrice,
+  };
+}
