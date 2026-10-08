@@ -1,4 +1,5 @@
 import {
+  ErrorCode,
   fetchProducts,
   finishTransaction,
   getAvailablePurchases,
@@ -15,6 +16,12 @@ import { supabase } from './supabase';
 // One product id for both stores -- Apple's and Google's ids allow the same
 // reverse-DNS form, and the server functions check for exactly this value.
 export const PREMIUM_SKU = 'com.teamk.fitnfree.premium.monthly';
+
+// Raised when the person closes the store's purchase sheet. Not a failure, so
+// the checkout flow swallows it instead of showing an error message.
+export function isPurchaseCancelled(err: unknown): boolean {
+  return err instanceof Error && err.name === 'PurchaseCancelledError';
+}
 
 let connectionReady: Promise<boolean> | null = null;
 
@@ -38,6 +45,12 @@ async function runPurchase(start: () => Promise<unknown>): Promise<Purchase> {
     const errorSub = purchaseErrorListener((e) => {
       updateSub.remove();
       errorSub.remove();
+      if (e.code === ErrorCode.UserCancelled) {
+        const cancelled = new Error('Purchase cancelled.');
+        cancelled.name = 'PurchaseCancelledError';
+        reject(cancelled);
+        return;
+      }
       reject(new Error(e.message || 'Purchase failed.'));
     });
 

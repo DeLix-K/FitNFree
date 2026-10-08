@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { notifyPremiumChanged } from '../lib/billing';
 import { loadPremiumProductInfo, restorePremiumPurchases, type PremiumProductInfo } from '../lib/iap';
 import { LEGAL_LINKS } from '../lib/legalLinks';
-import { registerPaywallPresenter } from '../lib/paywall';
+import { registerPaywallPresenter, type PaywallMode } from '../lib/paywall';
 import { dark } from '../lib/theme';
 
 // The subscription screen App Review Guideline 3.1.2(c) asks for: title, length,
@@ -34,6 +34,7 @@ export default function SubscriptionPaywall() {
   const insets = useSafeAreaInsets();
   const [visible, setVisible] = useState(false);
   const [info, setInfo] = useState<InfoState>({ status: 'loading' });
+  const [mode, setMode] = useState<PaywallMode>('subscribe');
   const [restoring, setRestoring] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   // Held in a ref: the pending startCheckout() call waits on this.
@@ -47,11 +48,12 @@ export default function SubscriptionPaywall() {
   }, []);
 
   useEffect(() => {
-    return registerPaywallPresenter((decide) => {
+    return registerPaywallPresenter((decide, nextMode) => {
       // If something was already waiting (shouldn't be -- startCheckout allows
       // one at a time), treat it as declined so it doesn't hang.
       decideRef.current?.(false);
       decideRef.current = decide;
+      setMode(nextMode);
       setMessage(null);
       setVisible(true);
       loadInfo();
@@ -95,14 +97,21 @@ export default function SubscriptionPaywall() {
   };
 
   const ready = info.status === 'ready' ? info.info : null;
+  const details = mode === 'details';
+  const manageUrl =
+    Platform.OS === 'ios'
+      ? 'https://apps.apple.com/account/subscriptions'
+      : 'https://play.google.com/store/account/subscriptions';
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={() => finish(false)}>
       <View style={styles.backdrop}>
         <View style={[styles.sheet, { paddingBottom: Math.max(insets.bottom, 12) + 12 }]}>
           <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
-            <Text style={styles.eyebrow}>Auto-renewing subscription</Text>
+            <Text style={styles.eyebrow}>{details ? 'Your subscription' : 'Auto-renewing subscription'}</Text>
             <Text style={styles.title}>FitNFree Premium</Text>
+
+            {details && <Text style={styles.status}>You have FitNFree Premium. Thank you for subscribing.</Text>}
 
             <View style={styles.priceCard}>
               {info.status === 'loading' && <ActivityIndicator color={dark.accent} />}
@@ -143,22 +152,28 @@ export default function SubscriptionPaywall() {
             {message && <Text style={styles.message}>{message}</Text>}
           </ScrollView>
 
-          <Pressable
-            style={[styles.subscribe, !ready && styles.subscribeDisabled]}
-            disabled={!ready}
-            onPress={() => finish(true, 400)}
-            accessibilityRole="button"
-          >
-            <Text style={styles.subscribeText}>
-              {ready ? `Subscribe for ${ready.displayPrice} per month` : 'Subscribe'}
-            </Text>
-          </Pressable>
+          {details ? (
+            <Pressable style={styles.subscribe} onPress={() => openLink(manageUrl)} accessibilityRole="button">
+              <Text style={styles.subscribeText}>Manage subscription</Text>
+            </Pressable>
+          ) : (
+            <Pressable
+              style={[styles.subscribe, !ready && styles.subscribeDisabled]}
+              disabled={!ready}
+              onPress={() => finish(true, 400)}
+              accessibilityRole="button"
+            >
+              <Text style={styles.subscribeText}>
+                {ready ? `Subscribe for ${ready.displayPrice} per month` : 'Subscribe'}
+              </Text>
+            </Pressable>
+          )}
           <View style={styles.secondaryRow}>
             <Pressable onPress={restore} disabled={restoring} accessibilityRole="button">
               <Text style={styles.secondary}>{restoring ? 'Restoring…' : 'Restore Purchases'}</Text>
             </Pressable>
             <Pressable onPress={() => finish(false)} accessibilityRole="button">
-              <Text style={styles.secondary}>Not now</Text>
+              <Text style={styles.secondary}>{details ? 'Close' : 'Not now'}</Text>
             </Pressable>
           </View>
         </View>
@@ -182,6 +197,7 @@ const styles = StyleSheet.create({
   content: { paddingBottom: 12 },
   eyebrow: { color: dark.accent, fontSize: 12, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase', marginBottom: 6 },
   title: { color: dark.text, fontSize: 24, fontWeight: '800', marginBottom: 14 },
+  status: { color: dark.accent, fontSize: 14, fontWeight: '700', marginBottom: 12 },
   priceCard: {
     backgroundColor: dark.surfaceElevated,
     borderWidth: 1,

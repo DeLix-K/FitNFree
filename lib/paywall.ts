@@ -8,7 +8,9 @@
 // through startCheckout(), so putting the screen in that one place covers all
 // of them -- including buttons that sit inside other modals.
 
-type Presenter = (decide: (confirmed: boolean) => void) => void;
+export type PaywallMode = 'subscribe' | 'details';
+
+type Presenter = (decide: (confirmed: boolean) => void, mode: PaywallMode) => void;
 
 let presenter: Presenter | null = null;
 
@@ -29,6 +31,19 @@ export function confirmSubscription(): Promise<boolean> {
       reject(new Error('The subscription screen is not available. Please restart the app and try again.'));
       return;
     }
-    presenter(resolve);
+    presenter(resolve, 'subscribe');
+  });
+}
+
+// The same screen without the Subscribe button, for people who already have
+// Premium (and for App Review, whose demo account does): their plan, price,
+// renewal terms, legal links and a way to manage it. Resolves when closed.
+export function showSubscriptionDetails(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (!presenter) {
+      reject(new Error('The subscription screen is not available. Please restart the app and try again.'));
+      return;
+    }
+    presenter(() => resolve(), 'details');
   });
 }

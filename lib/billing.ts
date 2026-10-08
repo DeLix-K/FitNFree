@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
-import { purchasePremiumAndroid, purchasePremiumIOS } from './iap';
+import { isPurchaseCancelled, purchasePremiumAndroid, purchasePremiumIOS } from './iap';
 import { confirmSubscription } from './paywall';
 import { supabase } from './supabase';
 
@@ -46,8 +46,14 @@ async function runCheckout(): Promise<void> {
     // links before the store purchase starts. See lib/paywall.ts.
     const confirmed = await confirmSubscription();
     if (!confirmed) return;
-    if (Platform.OS === 'ios') await purchasePremiumIOS();
-    else await purchasePremiumAndroid();
+    try {
+      if (Platform.OS === 'ios') await purchasePremiumIOS();
+      else await purchasePremiumAndroid();
+    } catch (err) {
+      // Closing the store's purchase sheet is a normal choice, not an error.
+      if (isPurchaseCancelled(err)) return;
+      throw err;
+    }
     return;
   }
 
