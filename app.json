@@ -13,7 +13,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSSpeechRecognitionUsageDescription": "FitNFree uses speech recognition to turn your voice into text for your AI Coach.",
-        "NSMicrophoneUsageDescription": "FitNFree uses your microphone to hear voice commands to your AI Coach."
+        "NSMicrophoneUsageDescription": "FitNFree uses your microphone for voice commands to your AI Coach and when you record videos."
       }
     },
     "android": {
@@ -39,14 +39,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "FitNFree uses your photos to identify gym equipment from a picture.",
-          "cameraPermission": "FitNFree uses your camera to identify gym equipment from a photo."
+          "photosPermission": "FitNFree uses your photo library so you can choose photos and videos for equipment, meal and menu scans, form checks and trainer profiles.",
+          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, and to record form-check and trainer videos."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "FitNFree uses your camera to scan food barcodes and restaurant menus.",
+          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, and to record form-check and trainer videos.",
           "recordAudioAndroid": false
         }
       ],
@@ -54,7 +54,7 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "FitNFree uses your microphone to hear voice commands to your AI Coach.",
+          "microphonePermission": "FitNFree uses your microphone for voice commands to your AI Coach and when you record videos.",
           "speechRecognitionPermission": "FitNFree uses speech recognition to turn your voice into text for your AI Coach."
         }
       ],
@@ -70,7 +70,10 @@
         "expo-location",
         {
           "locationWhenInUsePermission": "FitNFree uses your location to track outdoor activities like runs, walks, and rides.",
-          "isAndroidBackgroundLocationEnabled": false
+          "isAndroidBackgroundLocationEnabled": false,
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "motionUsagePermission": false
         }
       ],
       "./plugins/withoutPushEntitlement.js",

@@ -1,3 +1,4 @@
+import { assertCleanText } from './contentFilter';
 import { supabase } from './supabase';
 import type { LeaderboardEntry, StreakFreezeBalance } from './types';
 
@@ -120,6 +121,7 @@ export async function fetchLeaderboard(): Promise<LeaderboardEntry[]> {
 }
 
 export async function updateDisplayName(name: string): Promise<void> {
+  assertCleanText('Your display name', name);
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error('Not signed in.');

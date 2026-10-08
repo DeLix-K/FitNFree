@@ -1,3 +1,4 @@
+import ReportContentButton from './ReportContentButton';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { FORMAT_OPTIONS } from '../lib/trainerMatchmaker';
 import { CAN_SELL_DIGITAL_CONTENT } from '../lib/storeRules';
@@ -108,6 +109,9 @@ export default function TrainerCard({
         <Pressable style={[styles.messageButton, styles.actionButton]} onPress={onChat}>
           <Text style={styles.messageButtonText}>💬 Chat</Text>
         </Pressable>
+      </View>
+      <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
+        <ReportContentButton kind="trainer" targetId={trainer.id} reportedUserId={trainer.user_id} label={trainer.display_name} />
       </View>
     </View>
   );

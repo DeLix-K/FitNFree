@@ -1,3 +1,4 @@
+import { assertCleanText } from './contentFilter';
 import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
 import { supabase } from './supabase';
 import type {
@@ -92,6 +93,9 @@ export async function submitTrainerProfile(params: {
   defaultVideoCallLink?: string | null;
   coachingStyle?: CoachingStyle | null;
 }): Promise<void> {
+  assertCleanText('Your display name', params.displayName);
+  assertCleanText('Your bio', params.bio);
+  assertCleanText('Your specialty', params.specialty);
   await invoke('trainer-signup', params);
 }
 

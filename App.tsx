@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 import AppShell, { type Tab } from './components/AppShell';
+import AiConsentModal from './components/AiConsentModal';
 import SubscriptionPaywall from './components/SubscriptionPaywall';
 import { useAuth } from './hooks/useAuth';
 import { CartProvider } from './lib/cartContext';
@@ -138,6 +139,7 @@ export default function App() {
           {activeTab === 'more' && <MoreScreen session={session} onNavigate={setActiveTab} />}
         </AppShell>
         <SubscriptionPaywall />
+        <AiConsentModal />
         </CartProvider>
       ) : (
         <AuthScreen />

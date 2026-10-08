@@ -2,6 +2,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Linking,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -11,6 +12,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
+import { LEGAL_LINKS } from '../lib/legalLinks';
 import { supabase } from '../lib/supabase';
 import { dark } from '../lib/theme';
 
@@ -145,6 +147,20 @@ export default function AuthScreen() {
             {loading ? <ActivityIndicator color="#0a0a0a" /> : <Text style={styles.buttonText}>{buttonLabel}</Text>}
           </Pressable>
 
+          {mode === 'signUp' && (
+            <Text style={styles.legalNotice}>
+              By signing up you agree to our{' '}
+              <Text style={styles.legalLink} onPress={() => LEGAL_LINKS.terms && Linking.openURL(LEGAL_LINKS.terms)}>
+                Terms of Use
+              </Text>
+              {' '}and{' '}
+              <Text style={styles.legalLink} onPress={() => LEGAL_LINKS.privacyPolicy && Linking.openURL(LEGAL_LINKS.privacyPolicy)}>
+                Privacy Policy
+              </Text>
+              . Abusive, hateful or sexually explicit content isn't allowed, and accounts that post it may be removed.
+            </Text>
+          )}
+
           {mode === 'signIn' && (
             <Pressable onPress={() => switchMode('forgotPassword')}>
               <Text style={styles.forgotText}>Forgot password?</Text>
@@ -169,6 +185,8 @@ export default function AuthScreen() {
 }
 
 const styles = StyleSheet.create({
+  legalNotice: { color: dark.textMuted, fontSize: 12, lineHeight: 17, textAlign: 'center', marginTop: 14 },
+  legalLink: { color: dark.accent, fontWeight: '600', textDecorationLine: 'underline' },
   bg: {
     flex: 1,
   },
