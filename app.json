@@ -71,9 +71,9 @@
         {
           "locationWhenInUsePermission": "FitNFree uses your location to track outdoor activities like runs, walks, and rides.",
           "isAndroidBackgroundLocationEnabled": false,
-          "locationAlwaysAndWhenInUsePermission": false,
-          "locationAlwaysPermission": false,
-          "motionUsagePermission": false
+          "locationAlwaysAndWhenInUsePermission": "FitNFree only uses your location while the app is open, to track outdoor activities. It does not track you in the background.",
+          "locationAlwaysPermission": "FitNFree only uses your location while the app is open, to track outdoor activities. It does not track you in the background.",
+          "motionUsagePermission": "FitNFree does not use your motion activity. Apple requires this description because a location library used for outdoor tracking includes motion code."
         }
       ],
       "./plugins/withoutPushEntitlement.js",
