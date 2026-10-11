@@ -35,15 +35,22 @@ async function invoke<T>(name: string, body?: Record<string, unknown>): Promise<
   return data as T;
 }
 
+// Everything the public Trainers tab needs, and nothing private: no Stripe
+// account id and no default video-call link (see
+// supabase/security_hardening_after_app_update.sql, which enforces this at
+// the database).
+const PUBLIC_TRAINER_COLUMNS =
+  'id, user_id, display_name, bio, specialty, price_cents, payouts_enabled, listed_for_chat, intro_video_url, training_format, location_text, coaching_style, created_at';
+
 export async function fetchTrainers(): Promise<TrainerProfile[]> {
   const { data, error } = await supabase
     .from('trainer_profiles')
-    .select('*')
+    .select(PUBLIC_TRAINER_COLUMNS)
     .or('payouts_enabled.eq.true,listed_for_chat.eq.true')
     .order('created_at', { ascending: false });
 
   if (error) throw new Error(error.message);
-  return data ?? [];
+  return (data ?? []).map((t) => ({ ...t, stripe_account_id: null, default_video_call_link: null })) as TrainerProfile[];
 }
 
 export async function fetchTrainerRatings(): Promise<Map<string, TrainerRating>> {

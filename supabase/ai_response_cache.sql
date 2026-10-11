@@ -24,21 +24,14 @@ create table if not exists ai_response_cache (
 
 alter table ai_response_cache enable row level security;
 
--- ask-claude runs as the calling user (not service_role -- see its own
--- comment on why), so authenticated is the role that needs access. Reads
--- and writes are of shared, non-personal cache rows, same trust level as
--- the exercises/courses catalogs.
+-- Service-role only: no policies and no grants for anon/authenticated. The
+-- ask-claude function reads and writes it with the service-role key. Letting
+-- signed-in users insert would let any of them plant a reply under the hash
+-- of someone else's prompt (the hash is computable from the public source)
+-- and have it served to other users -- shared-cache poisoning.
+revoke all on ai_response_cache from anon, authenticated;
 drop policy if exists "Authenticated users can read the shared AI cache" on ai_response_cache;
-create policy "Authenticated users can read the shared AI cache"
-  on ai_response_cache for select
-  using (auth.role() = 'authenticated');
-
 drop policy if exists "Authenticated users can add to the shared AI cache" on ai_response_cache;
-create policy "Authenticated users can add to the shared AI cache"
-  on ai_response_cache for insert
-  with check (auth.role() = 'authenticated');
-
-grant select, insert on ai_response_cache to authenticated;
 
 -- A rough way to see the cache earning its keep: compare this to
 -- ai_history's row count for the same period.

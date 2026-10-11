@@ -462,7 +462,9 @@ export async function searchUsers(query: string): Promise<UserSearchResult[]> {
   const { data, error } = await supabase
     .from('leaderboard')
     .select('user_id, display_name')
-    .ilike('display_name', `%${trimmed}%`)
+    // Escape LIKE wildcards so a search for "%" or "_" matches literally
+    // instead of listing every member.
+    .ilike('display_name', `%${trimmed.replace(/[\\%_]/g, (c) => `\\${c}`)}%`)
     .limit(20);
 
   if (error) throw new Error(error.message);

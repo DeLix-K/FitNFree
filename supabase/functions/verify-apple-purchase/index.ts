@@ -98,17 +98,20 @@ async function fetchTransactionInfo(transactionId: string, asJwt: string) {
   // Only surface an error if BOTH environments fail.
   const failures: string[] = [];
   for (const base of ['https://api.storekit.itunes.apple.com', 'https://api.storekit-sandbox.itunes.apple.com']) {
-    const res = await fetch(`${base}/inApps/v1/transactions/${transactionId}`, {
+    // transactionId is validated as digits-only by the caller, so it can't
+    // redirect this request to another path on Apple's host.
+    const res = await fetch(`${base}/inApps/v1/transactions/${encodeURIComponent(transactionId)}`, {
       headers: { Authorization: `Bearer ${asJwt}` },
     });
     if (res.ok) {
       const body = await res.json();
       return decodeSignedTransactionInfo(body.signedTransactionInfo as string);
     }
-    const text = await res.text();
-    failures.push(`${base}: ${res.status} ${text}`);
+    failures.push(`${base}: ${res.status} ${await res.text()}`);
   }
-  throw new Error(`Transaction not found. ${failures.join(' | ')}`);
+  // Apple's response bodies go to the server log only, never back to the caller.
+  console.error('verify-apple-purchase: transaction lookup failed', failures.join(' | '));
+  throw new Error('Transaction not found.');
 }
 
 Deno.serve(async (req) => {
@@ -122,8 +125,8 @@ Deno.serve(async (req) => {
     }
 
     const { transactionId } = await req.json();
-    if (!transactionId || typeof transactionId !== 'string') {
-      return new Response(JSON.stringify({ error: 'transactionId is required.' }), {
+    if (typeof transactionId !== 'string' || !/^d{1,20}$/.test(transactionId)) {
+      return new Response(JSON.stringify({ error: 'A valid transactionId is required.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
       });
@@ -146,7 +149,7 @@ Deno.serve(async (req) => {
     const asJwt = await makeAppStoreServerJwt();
     const info = await fetchTransactionInfo(transactionId, asJwt);
 
-    if (info.productId !== PREMIUM_PRODUCT_ID) {
+    if (info.bundleId !== Deno.env.get('APPLE_BUNDLE_ID') || info.productId !== PREMIUM_PRODUCT_ID) {
       return new Response(JSON.stringify({ error: 'Transaction is not for the Premium subscription.' }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -215,7 +218,7 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error(err);
-    return new Response(JSON.stringify({ error: String(err) }), {
+    return new Response(JSON.stringify({ error: 'Could not verify this purchase. Please try again.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

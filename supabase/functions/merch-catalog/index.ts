@@ -4,6 +4,8 @@
 // Deploy via the Supabase dashboard: Edge Functions > Create a new function.
 // Keep "Enforce JWT Verification" ON.
 
+import { createClient } from 'npm:@supabase/supabase-js@2';
+
 const ALLOWED_ORIGINS = (Deno.env.get('ALLOWED_ORIGINS') ?? '')
   .split(',')
   .map((o) => o.trim())
@@ -41,6 +43,12 @@ function printfulHeaders(): Record<string, string> {
   return headers;
 }
 
+// Short in-memory cache (per warm instance): each catalog build is 1 + N
+// Printful calls, and Printful rate-limits, so repeat requests mustn't each
+// fan out.
+const CACHE_TTL_MS = 5 * 60_000;
+let cached: { at: number; body: string } | null = null;
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req.headers.get('Origin'));
   if (req.method === 'OPTIONS') {
@@ -52,6 +60,28 @@ Deno.serve(async (req) => {
     if (!authHeader) {
       return new Response(JSON.stringify({ error: 'Missing Authorization header.' }), {
         status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    // The gateway accepts the public anon key as a bearer token, so a header
+    // being present proves nothing -- require an actual signed-in user.
+    const userClient = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const {
+      data: { user },
+    } = await userClient.auth.getUser();
+    if (!user) {
+      return new Response(JSON.stringify({ error: 'Invalid or expired session.' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    if (cached && Date.now() - cached.at < CACHE_TTL_MS) {
+      return new Response(cached.body, {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -124,7 +154,9 @@ Deno.serve(async (req) => {
 
     const catalog = products.filter((p) => p && p.variants.some((v) => v.available));
 
-    return new Response(JSON.stringify({ products: catalog }), {
+    const body = JSON.stringify({ products: catalog });
+    cached = { at: Date.now(), body };
+    return new Response(body, {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
