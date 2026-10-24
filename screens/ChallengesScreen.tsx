@@ -1,3 +1,4 @@
+import ReportContentButton from '../components/ReportContentButton';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -483,6 +484,9 @@ export default function ChallengesScreen() {
 
             {expanded && (
               <View style={styles.expandedSection}>
+                <View style={{ alignItems: 'flex-end', marginBottom: 8 }}>
+                  <ReportContentButton kind="challenge" targetId={challenge.id} label={challenge.title} />
+                </View>
                 <View style={styles.sortRow}>
                   {SORT_TABS.map((s) => (
                     <Pressable
@@ -522,6 +526,11 @@ export default function ChallengesScreen() {
                           </Text>
                           {row.commitment ? <Text style={styles.rowCommitment}>"{row.commitment}"</Text> : null}
                         </View>
+                        {row.user_id !== userId && (
+                          <View style={{ marginRight: 10 }}>
+                            <ReportContentButton kind="user" targetId={row.user_id} reportedUserId={row.user_id} label={row.display_name} />
+                          </View>
+                        )}
                         <Text style={styles.rowStat}>{value}</Text>
                       </View>
                     );

@@ -6,13 +6,17 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
+  Switch,
   Text,
   TextInput,
   View,
 } from 'react-native';
 import type { Tab } from '../components/AppShell';
-import { notifyPremiumChanged } from '../lib/billing';
+import { useAiGate } from '../hooks/useAiGate';
+import { hasAiConsent, setAiConsent } from '../lib/aiConsent';
+import { notifyPremiumChanged, startCheckout } from '../lib/billing';
 import { restorePremiumPurchases } from '../lib/iap';
+import { showSubscriptionDetails } from '../lib/paywall';
 import { LEGAL_LINKS, openLegalLink } from '../lib/legalLinks';
 import { computeTargets, deleteAccount, fetchBodyStats, updateBodyStats } from '../lib/profile';
 import { getMyStats, updateDisplayName } from '../lib/streaks';
@@ -47,6 +51,7 @@ function formatMemberSince(iso: string | undefined): string {
 }
 
 export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) => void }) {
+  const { isPremium } = useAiGate();
   const [stats, setStats] = useState<BodyStats>({
     height_cm: null,
     weight_kg: null,
@@ -65,6 +70,15 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [restoring, setRestoring] = useState(false);
+  // Whether AI features may receive this person's data (Guideline 5.1.2(i)).
+  const [aiSharing, setAiSharing] = useState(false);
+  useEffect(() => {
+    hasAiConsent().then(setAiSharing);
+  }, []);
+  const handleAiSharingChange = async (next: boolean) => {
+    setAiSharing(next);
+    await setAiConsent(next);
+  };
 
   const [email, setEmail] = useState('');
   const [memberSince, setMemberSince] = useState('');
@@ -203,6 +217,18 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setDeleting(false);
+    }
+  };
+
+  // Always available (not just to free users): shows the plan, price, renewal
+  // terms and legal links. Free users can subscribe from it; subscribers see
+  // their plan and a way to manage it.
+  const handlePremiumPlan = async () => {
+    try {
+      if (isPremium) await showSubscriptionDetails();
+      else await startCheckout();
+    } catch (err) {
+      Alert.alert('Could not open Premium', err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -425,6 +451,22 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
         <Text style={styles.linkRowText}>🕘 Activity History</Text>
         <Text style={styles.linkRowArrow}>→</Text>
       </Pressable>
+      <View style={styles.linkRow}>
+        <View style={{ flex: 1, paddingRight: 12 }}>
+          <Text style={styles.linkRowText}>🤖 AI data sharing</Text>
+          <Text style={styles.aiSharingNote}>
+            Lets the AI Coach, scans and insights send what you ask, plus relevant profile and log data, to Anthropic to
+            generate replies.
+          </Text>
+        </View>
+        <Switch value={aiSharing} onValueChange={handleAiSharingChange} trackColor={{ true: dark.accentDark }} thumbColor={aiSharing ? dark.accent : undefined} />
+      </View>
+      {Platform.OS !== 'web' && (
+        <Pressable style={styles.linkRow} onPress={handlePremiumPlan}>
+          <Text style={styles.linkRowText}>💎 FitNFree Premium</Text>
+          <Text style={styles.linkRowArrow}>{isPremium ? 'Active →' : 'View plan →'}</Text>
+        </Pressable>
+      )}
       {Platform.OS !== 'web' && (
         <Pressable style={styles.linkRow} onPress={handleRestorePurchases} disabled={restoring}>
           <Text style={styles.linkRowText}>♻️ Restore Purchases</Text>
@@ -731,6 +773,7 @@ const styles = StyleSheet.create({
   },
   linkRowText: { color: dark.text, fontSize: 14, fontWeight: '600' },
   linkRowArrow: { color: dark.textFaint, fontSize: 16 },
+  aiSharingNote: { color: dark.textFaint, fontSize: 11, lineHeight: 15, marginTop: 3 },
   signOutButton: {
     borderWidth: 1,
     borderColor: dark.border,

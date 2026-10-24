@@ -1,4 +1,5 @@
 import {
+  ErrorCode,
   fetchProducts,
   finishTransaction,
   getAvailablePurchases,
@@ -15,6 +16,12 @@ import { supabase } from './supabase';
 // One product id for both stores -- Apple's and Google's ids allow the same
 // reverse-DNS form, and the server functions check for exactly this value.
 export const PREMIUM_SKU = 'com.teamk.fitnfree.premium.monthly';
+
+// Raised when the person closes the store's purchase sheet. Not a failure, so
+// the checkout flow swallows it instead of showing an error message.
+export function isPurchaseCancelled(err: unknown): boolean {
+  return err instanceof Error && err.name === 'PurchaseCancelledError';
+}
 
 let connectionReady: Promise<boolean> | null = null;
 
@@ -38,6 +45,12 @@ async function runPurchase(start: () => Promise<unknown>): Promise<Purchase> {
     const errorSub = purchaseErrorListener((e) => {
       updateSub.remove();
       errorSub.remove();
+      if (e.code === ErrorCode.UserCancelled) {
+        const cancelled = new Error('Purchase cancelled.');
+        cancelled.name = 'PurchaseCancelledError';
+        reject(cancelled);
+        return;
+      }
       reject(new Error(e.message || 'Purchase failed.'));
     });
 
@@ -178,4 +191,27 @@ export async function restorePremiumPurchases(): Promise<boolean> {
   await ensureConnection();
   if (Platform.OS === 'ios') await restorePurchases();
   return verifyOwnedPremium();
+}
+
+export interface PremiumProductInfo {
+  title: string;
+  // The store's own formatted, localised price (e.g. "£9.99"). Never hardcoded:
+  // the price differs by country and Apple/Google are the source of truth.
+  displayPrice: string;
+}
+
+// What the subscription screen shows before a purchase. Returns null if the
+// store can't be reached or doesn't return a price -- the screen then refuses to
+// offer the purchase rather than ask someone to subscribe without seeing the cost.
+export async function loadPremiumProductInfo(): Promise<PremiumProductInfo | null> {
+  await ensureConnection();
+  const products = (await fetchProducts({ skus: [PREMIUM_SKU], type: 'subs' })) as unknown as
+    | { id?: string; title?: string | null; displayName?: string | null; displayPrice?: string | null }[]
+    | null;
+  const product = products?.find((p) => p.id === PREMIUM_SKU) ?? products?.[0];
+  if (!product?.displayPrice) return null;
+  return {
+    title: product.title || product.displayName || 'FitNFree Premium',
+    displayPrice: product.displayPrice,
+  };
 }

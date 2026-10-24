@@ -1,3 +1,4 @@
+import ReportContentButton from './ReportContentButton';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Modal, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import {
@@ -126,6 +127,11 @@ export default function ChallengeSquadPanel({ challengeId }: { challengeId: stri
                   <Text style={styles.leaveButtonText}>Leave</Text>
                 </Pressable>
               ) : null}
+              {!isMine && (
+                <View style={{ marginLeft: 10 }}>
+                  <ReportContentButton kind="squad" targetId={team.team_id} label={team.name} />
+                </View>
+              )}
             </View>
           );
         })

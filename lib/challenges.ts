@@ -1,3 +1,4 @@
+import { assertCleanText } from './contentFilter';
 import { supabase } from './supabase';
 import type {
   Challenge,
@@ -131,6 +132,7 @@ export async function leaveChallenge(challengeId: string): Promise<void> {
 }
 
 export async function updateCommitment(challengeId: string, commitment: string): Promise<void> {
+  assertCleanText('Your commitment', commitment);
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error('Not signed in.');
@@ -168,6 +170,9 @@ export async function createChallenge(params: {
   hostedByTrainerId?: string | null;
   stages?: CreateChallengeStageInput[];
 }): Promise<Challenge> {
+  assertCleanText('The challenge title', params.title);
+  assertCleanText('The challenge description', params.description);
+  assertCleanText('The challenge goal', params.targetNote);
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error('Not signed in.');
@@ -280,6 +285,7 @@ export async function fetchMyTeamId(challengeId: string): Promise<string | null>
 }
 
 export async function createTeam(challengeId: string, name: string): Promise<ChallengeTeam> {
+  assertCleanText('The squad name', name);
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error('Not signed in.');

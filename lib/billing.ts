@@ -1,6 +1,7 @@
 import { Platform } from 'react-native';
 import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
-import { purchasePremiumAndroid, purchasePremiumIOS } from './iap';
+import { isPurchaseCancelled, purchasePremiumAndroid, purchasePremiumIOS } from './iap';
+import { confirmSubscription } from './paywall';
 import { supabase } from './supabase';
 
 let checkoutInFlight: Promise<void> | null = null;
@@ -40,12 +41,19 @@ export function startCheckout(): Promise<void> {
 async function runCheckout(): Promise<void> {
   // Apple and Google both require digital subscriptions to be sold through
   // their own billing systems inside their apps -- only web uses Stripe.
-  if (Platform.OS === 'ios') {
-    await purchasePremiumIOS();
-    return;
-  }
-  if (Platform.OS === 'android') {
-    await purchasePremiumAndroid();
+  if (Platform.OS === 'ios' || Platform.OS === 'android') {
+    // Guideline 3.1.2(c): show the subscription title, length, price and legal
+    // links before the store purchase starts. See lib/paywall.ts.
+    const confirmed = await confirmSubscription();
+    if (!confirmed) return;
+    try {
+      if (Platform.OS === 'ios') await purchasePremiumIOS();
+      else await purchasePremiumAndroid();
+    } catch (err) {
+      // Closing the store's purchase sheet is a normal choice, not an error.
+      if (isPurchaseCancelled(err)) return;
+      throw err;
+    }
     return;
   }
 

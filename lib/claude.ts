@@ -1,9 +1,12 @@
+import { ensureAiConsent } from './aiConsent';
 import { supabase } from './supabase';
 
 export type ImageInput = { data: string; mediaType: string };
 export type ChatMessage = { role: 'user' | 'assistant'; content: string };
 
 async function invokeAskClaude(body: Record<string, unknown>): Promise<string> {
+  // Guideline 5.1.2(i): ask permission before any personal data goes to the AI provider.
+  await ensureAiConsent();
   const { data, error } = await supabase.functions.invoke<{ reply?: string; error?: string }>(
     'ask-claude',
     { body }

@@ -13,7 +13,7 @@
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSSpeechRecognitionUsageDescription": "FitNFree uses speech recognition to turn your voice into text for your AI Coach.",
-        "NSMicrophoneUsageDescription": "FitNFree uses your microphone to hear voice commands to your AI Coach."
+        "NSMicrophoneUsageDescription": "FitNFree uses your microphone for voice commands to your AI Coach and when you record videos."
       }
     },
     "android": {
@@ -28,8 +28,6 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.CAMERA",
         "android.permission.MODIFY_AUDIO_SETTINGS",
-        "android.permission.FOREGROUND_SERVICE",
-        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK",
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION"
       ]
@@ -41,14 +39,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "FitNFree uses your photos to identify gym equipment from a picture.",
-          "cameraPermission": "FitNFree uses your camera to identify gym equipment from a photo."
+          "photosPermission": "FitNFree uses your photo library so you can choose photos and videos for equipment, meal and menu scans, form checks and trainer profiles.",
+          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, and to record form-check and trainer videos."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "FitNFree uses your camera to scan food barcodes and restaurant menus.",
+          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, and to record form-check and trainer videos.",
           "recordAudioAndroid": false
         }
       ],
@@ -56,17 +54,26 @@
       [
         "expo-speech-recognition",
         {
-          "microphonePermission": "FitNFree uses your microphone to hear voice commands to your AI Coach.",
+          "microphonePermission": "FitNFree uses your microphone for voice commands to your AI Coach and when you record videos.",
           "speechRecognitionPermission": "FitNFree uses speech recognition to turn your voice into text for your AI Coach."
         }
       ],
       "expo-sharing",
-      "expo-audio",
+      [
+        "expo-audio",
+        {
+          "enableBackgroundPlayback": false,
+          "enableBackgroundRecording": false
+        }
+      ],
       [
         "expo-location",
         {
           "locationWhenInUsePermission": "FitNFree uses your location to track outdoor activities like runs, walks, and rides.",
-          "isAndroidBackgroundLocationEnabled": false
+          "isAndroidBackgroundLocationEnabled": false,
+          "locationAlwaysAndWhenInUsePermission": "FitNFree only uses your location while the app is open, to track outdoor activities. It does not track you in the background.",
+          "locationAlwaysPermission": "FitNFree only uses your location while the app is open, to track outdoor activities. It does not track you in the background.",
+          "motionUsagePermission": "FitNFree does not use your motion activity. Apple requires this description because a location library used for outdoor tracking includes motion code."
         }
       ],
       "./plugins/withoutPushEntitlement.js",

@@ -1,3 +1,4 @@
+import ReportContentButton from '../components/ReportContentButton';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import FormReviewRequestModal from '../components/FormReviewRequestModal';
@@ -159,6 +160,9 @@ export default function TrainerProfileScreen({
         </View>
 
         {trainer.bio ? <Text style={styles.bio}>{trainer.bio}</Text> : null}
+        <View style={{ alignItems: 'flex-end', marginTop: 10 }}>
+          <ReportContentButton kind="trainer" targetId={trainer.id} reportedUserId={trainer.user_id} label={trainer.display_name} />
+        </View>
 
         {error && <Text style={styles.error}>{error}</Text>}
 
