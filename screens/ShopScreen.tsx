@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import SegmentedHeader from '../components/SegmentedHeader';
-import { CAN_SELL_DIGITAL_CONTENT } from '../lib/storeRules';
+import { CAN_SELL_DIGITAL_CONTENT, SHOW_ONLY_FREE_DIGITAL } from '../lib/storeRules';
 import { dark } from '../lib/theme';
 import CoursesScreen from './CoursesScreen';
 import DigitalProductsScreen from './DigitalProductsScreen';
@@ -19,9 +19,13 @@ const ALL_SEGMENTS: { value: Segment; label: string }[] = [
 
 // Courses and Guides & Plans are digital content, which the iOS and Android
 // apps can't sell outside store billing (see storeRules.ts).
+// On the phone apps the Guides tab stays, but it lists only free guides and is labelled that way.
+// Courses has no free items, so it stays hidden there.
 const SEGMENTS = CAN_SELL_DIGITAL_CONTENT
   ? ALL_SEGMENTS
-  : ALL_SEGMENTS.filter((s) => s.value === 'trainers' || s.value === 'merch');
+  : ALL_SEGMENTS.filter((s) => s.value !== 'courses').map((s) =>
+      SHOW_ONLY_FREE_DIGITAL && s.value === 'guides' ? { ...s, label: '📄 Free Guides' } : s
+    );
 
 // Trainers, Courses, Guides & Plans, and Merch are all "buy something"
 // marketplace experiences -- merged under one Shop tab.

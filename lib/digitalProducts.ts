@@ -1,4 +1,5 @@
 import { getCheckoutRedirectUrl, openCheckoutUrl } from './checkout';
+import { SHOW_ONLY_FREE_DIGITAL } from './storeRules';
 import { supabase } from './supabase';
 import type { DigitalProduct, DigitalProductContent, DigitalProductWithStatus } from './types';
 
@@ -44,10 +45,14 @@ export async function fetchDigitalProducts(): Promise<DigitalProductWithStatus[]
       .map((p: { product_id: string }) => p.product_id)
   );
 
-  return ((productsResult.data ?? []) as DigitalProduct[]).map((p) => ({
-    ...p,
-    owned: ownedIds.has(p.id),
-  }));
+  return ((productsResult.data ?? []) as DigitalProduct[])
+    // The price filter here is for what the app shows. What a player may actually receive is decided by
+    // the database (see supabase/claim_free_digital_product.sql), never by this screen.
+    .filter((p) => !SHOW_ONLY_FREE_DIGITAL || p.price_cents === 0)
+    .map((p) => ({
+      ...p,
+      owned: ownedIds.has(p.id),
+    }));
 }
 
 export async function fetchDigitalProductContent(productId: string): Promise<DigitalProductContent | null> {
@@ -73,4 +78,11 @@ export async function buyDigitalProduct(productId: string): Promise<void> {
   if (!url) throw new Error('Stripe did not return a checkout URL.');
 
   await openCheckoutUrl(url);
+}
+
+// Adds a free guide to the player's library. The server only allows this for items that really cost
+// nothing, so a paid guide cannot be taken this way.
+export async function claimFreeDigitalProduct(productId: string): Promise<void> {
+  const { error } = await supabase.rpc('claim_free_digital_product', { p_product_id: productId });
+  if (error) throw new Error(error.message);
 }

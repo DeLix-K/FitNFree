@@ -2,9 +2,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   buyDigitalProduct,
+  claimFreeDigitalProduct,
   fetchDigitalProductContent,
   fetchDigitalProducts,
 } from '../lib/digitalProducts';
+import { SHOW_ONLY_FREE_DIGITAL } from '../lib/storeRules';
 import { dark } from '../lib/theme';
 import type { DigitalProductCategory, DigitalProductContent, DigitalProductWithStatus } from '../lib/types';
 
@@ -79,11 +81,18 @@ export default function DigitalProductsScreen() {
     }
   };
 
-  const handleBuy = async (productId: string) => {
-    setBuyingId(productId);
+  const handleBuy = async (product: DigitalProductWithStatus) => {
+    setBuyingId(product.id);
     setError(null);
     try {
-      await buyDigitalProduct(productId);
+      if (product.price_cents === 0) {
+        // Free: no checkout. The server adds it to the library, then it opens.
+        await claimFreeDigitalProduct(product.id);
+        await load();
+        setBuyingId(null);
+        return;
+      }
+      await buyDigitalProduct(product.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
       setBuyingId(null);
@@ -100,9 +109,11 @@ export default function DigitalProductsScreen() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      <Text style={styles.title}>Guides & Plans</Text>
+      <Text style={styles.title}>{SHOW_ONLY_FREE_DIGITAL ? 'Free Guides' : 'Guides & Plans'}</Text>
       <Text style={styles.subtitle}>
-        One-time downloads: meal plans, transformation programs, and training guides.
+        {SHOW_ONLY_FREE_DIGITAL
+          ? 'Free guides and programmes. Tap Get free to add one to your library.'
+          : 'One-time downloads: meal plans, transformation programs, and training guides.'}
       </Text>
       {error && <Text style={styles.error}>{error}</Text>}
 
@@ -123,7 +134,7 @@ export default function DigitalProductsScreen() {
                 <Pressable onPress={() => toggleExpand(item)}>
                   <View style={styles.cardHeader}>
                     <Text style={styles.cardTitle}>{item.title}</Text>
-                    {!item.owned && <Text style={styles.cardPrice}>{formatPrice(item.price_cents)}</Text>}
+                    {!item.owned && <Text style={styles.cardPrice}>{item.price_cents === 0 ? 'Free' : formatPrice(item.price_cents)}</Text>}
                   </View>
                   {item.description ? <Text style={styles.cardDescription}>{item.description}</Text> : null}
                 </Pressable>
@@ -131,13 +142,15 @@ export default function DigitalProductsScreen() {
                 {!item.owned ? (
                   <Pressable
                     style={styles.buyButton}
-                    onPress={() => handleBuy(item.id)}
+                    onPress={() => handleBuy(item)}
                     disabled={buyingId === item.id}
                   >
                     {buyingId === item.id ? (
                       <ActivityIndicator color="#0a0a0a" size="small" />
                     ) : (
-                      <Text style={styles.buyButtonText}>Buy — {formatPrice(item.price_cents)}</Text>
+                      <Text style={styles.buyButtonText}>
+                        {item.price_cents === 0 ? 'Get free' : `Buy — ${formatPrice(item.price_cents)}`}
+                      </Text>
                     )}
                   </Pressable>
                 ) : expanded ? (
