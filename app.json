@@ -103,6 +103,12 @@
         "projectId": "f3710caa-723a-45cc-be8d-dbd29127a81a"
       }
     },
-    "owner": "team_k"
+    "owner": "team_k",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f3710caa-723a-45cc-be8d-dbd29127a81a"
+    }
   }
 }
