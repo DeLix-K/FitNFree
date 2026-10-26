@@ -39,14 +39,14 @@
       [
         "expo-image-picker",
         {
-          "photosPermission": "FitNFree uses your photo library so you can choose photos and videos for equipment, meal and menu scans, form checks and trainer profiles.",
-          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, and to record form-check and trainer videos."
+          "photosPermission": "FitNFree uses your photo library so you can choose photos and videos for equipment, meal and menu scans, form checks, trainer profiles and your private progress photos, which stay on your phone.",
+          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, to record form-check and trainer videos, and to take private progress photos that stay on your phone."
         }
       ],
       [
         "expo-camera",
         {
-          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, and to record form-check and trainer videos.",
+          "cameraPermission": "FitNFree uses your camera to scan gym equipment, food barcodes, meals and restaurant menus, to record form-check and trainer videos, and to take private progress photos that stay on your phone.",
           "recordAudioAndroid": false
         }
       ],

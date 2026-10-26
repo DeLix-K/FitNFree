@@ -91,7 +91,9 @@ export function Chips<T extends string | number>({ label, options, value, onChan
 export function Tile({ label, value, tone }: { label: string; value: string; tone?: 'warn' }) {
   return (
     <View style={styles.tile}>
-      <Text style={[styles.tileValue, tone === 'warn' && styles.tileWarn]}>{value}</Text>
+      <Text style={[styles.tileValue, value.length > 10 ? { fontSize: 17 } : value.length > 7 ? { fontSize: 20 } : null, tone === 'warn' && styles.tileWarn]} numberOfLines={1} adjustsFontSizeToFit minimumFontScale={0.6}>
+        {value}
+      </Text>
       <Text style={styles.tileLabel}>{label}</Text>
     </View>
   );
