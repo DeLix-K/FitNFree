@@ -13,6 +13,7 @@ import {
 import AiUsageIndicator from '../components/AiUsageIndicator';
 import CoachMemoryModal from '../components/CoachMemoryModal';
 import DailyBriefingCard from '../components/DailyBriefingCard';
+import IntervalTimerModal from '../components/IntervalTimerModal';
 import PostWorkoutInsightCard from '../components/PostWorkoutInsightCard';
 import SessionRecalibrationModal from '../components/SessionRecalibrationModal';
 import { useAiGate } from '../hooks/useAiGate';
@@ -80,6 +81,7 @@ export default function CoachScreen({ onNavigate }: { onNavigate?: (tab: Tab) =>
   // out without losing that thread.
   const [dashboardOpen, setDashboardOpen] = useState(true);
   const [recalibrateOpen, setRecalibrateOpen] = useState(false);
+  const [timerOpen, setTimerOpen] = useState(false);
   const [voiceRepliesOn, setVoiceRepliesOn] = useState(false);
   const aiGate = useAiGate();
   const scrollRef = useRef<ScrollView>(null);
@@ -281,6 +283,10 @@ export default function CoachScreen({ onNavigate }: { onNavigate?: (tab: Tab) =>
                 <Text style={styles.actionCardIcon}>📸</Text>
                 <Text style={styles.actionCardLabel}>Form Check</Text>
               </Pressable>
+              <Pressable style={styles.actionCard} onPress={() => setTimerOpen(true)} accessibilityRole="button" accessibilityLabel="Open the Tabata and boxing interval clock">
+                <Text style={styles.actionCardIcon}>⏱️</Text>
+                <Text style={styles.actionCardLabel}>Interval Clock</Text>
+              </Pressable>
             </View>
 
             <View style={styles.cardGrid}>
@@ -361,6 +367,8 @@ export default function CoachScreen({ onNavigate }: { onNavigate?: (tab: Tab) =>
           <Text style={styles.sendButtonText}>Send</Text>
         </Pressable>
       </View>
+
+      <IntervalTimerModal visible={timerOpen} onClose={() => setTimerOpen(false)} />
 
       <SessionRecalibrationModal
         visible={recalibrateOpen}
