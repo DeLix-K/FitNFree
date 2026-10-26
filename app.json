@@ -93,7 +93,8 @@
           "resizeMode": "contain",
           "backgroundColor": "#0a0a0a"
         }
-      ]
+      ],
+      "@sentry/react-native"
     ],
     "extra": {
       "privacyPolicyUrl": "https://delix-k.github.io/apps/fitnfree/privacy.html",
