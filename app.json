@@ -94,7 +94,15 @@
           "backgroundColor": "#0a0a0a"
         }
       ],
-      "@sentry/react-native"
+      "@sentry/react-native",
+      [
+        "@kingstinct/react-native-healthkit",
+        {
+          "NSHealthShareUsageDescription": "FitNFree reads your steps, workouts, heart rate, weight and sleep from Apple Health so you can see them next to your training. It only reads, never changes your Health data, and you choose what to allow.",
+          "NSHealthUpdateUsageDescription": false,
+          "background": false
+        }
+      ]
     ],
     "extra": {
       "privacyPolicyUrl": "https://delix-k.github.io/apps/fitnfree/privacy.html",

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import AppleHealthCard from '../components/AppleHealthCard';
+import { appleHealthSource } from '../lib/appleHealth';
 import { disconnectOura, getOuraAuthUrl, getOuraData, type OuraData } from '../lib/oura';
 import { dark } from '../lib/theme';
 
@@ -11,7 +13,8 @@ const REDIRECT_URI = Platform.OS === 'web' && typeof window !== 'undefined'
 // developer registration mid-build, and Apple Health / Google Health Connect
 // / Garmin all need native SDKs a managed Expo web build can't call. Listed
 // here honestly as "Coming soon" rather than faking a connected state.
-const COMING_SOON = ['Fitbit', 'Apple Health', 'Google Health Connect', 'Garmin'];
+// Apple Health is real on iPhone (read-only; see components/AppleHealthCard.tsx) and still "coming soon" everywhere else.
+const COMING_SOON = ['Fitbit', ...(appleHealthSource ? [] : ['Apple Health']), 'Google Health Connect', 'Garmin'];
 
 export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
   const [data, setData] = useState<OuraData | null>(null);
@@ -67,7 +70,7 @@ export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 48 }}>
       {onBack && (
         <Pressable onPress={onBack}>
           <Text style={styles.back}>{'< Profile'}</Text>
@@ -77,6 +80,8 @@ export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
       <Text style={styles.subtitle}>Connect a fitness tracker to see your daily activity here.</Text>
 
       {error && <Text style={styles.error}>{error}</Text>}
+
+      {appleHealthSource ? <AppleHealthCard source={appleHealthSource} /> : null}
 
       <View style={styles.deviceRow}>
         <View style={styles.deviceIconWrap}>
@@ -144,7 +149,7 @@ export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
           </View>
         </View>
       ))}
-    </View>
+    </ScrollView>
   );
 }
 

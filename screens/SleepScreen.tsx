@@ -382,7 +382,7 @@ export default function SleepScreen() {
         <View style={styles.row}>
           <View style={styles.rowLeft}>
             <Text style={styles.rowDate}>{item.sleep_date}</Text>
-            <Text style={styles.rowSource}>{item.source === 'oura' ? 'Oura' : 'Manual'}</Text>
+            <Text style={styles.rowSource}>{item.source === 'oura' ? 'Oura' : item.source === 'apple_health' ? 'Apple Health' : 'Manual'}</Text>
           </View>
           <View style={styles.rowRight}>
             <Text style={styles.rowDuration}>{formatDuration(item.duration_minutes)}</Text>
