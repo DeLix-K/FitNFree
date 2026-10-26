@@ -49,8 +49,9 @@ Reports already land in `content_reports`. Add an alert so someone reads them pr
   a saved Supabase query you check daily (less reliable).
 * Add a `reviewed_at` and `action` column so handled reports drop off the list.
 
-### F. Your "little addition"
-Not described yet. Add it here once defined, with its size and any review risk.
+### F. Interval Clock and Trainer Tools (the additions you asked for)
+Built 2026-10-26. See `new-features-1.0.1.md` for what they do, what they need before submitting (run `supabase/trainer_tools.sql`, update the privacy wording and
+App Privacy answers, add a trainer demo account for reviewers) and what was tested. Research on what else the app is missing, with a recommended order: `feature-research.md`.
 
 ## Housekeeping that rides along
 * Merge `security/backend-fixes` (includes AI abuse ceilings and trainer-data tightening) once the 1.0.1 binary is live, then run
