@@ -1,14 +1,16 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import SegmentedHeader from '../components/SegmentedHeader';
 import { CAN_SELL_DIGITAL_CONTENT, SHOW_ONLY_FREE_DIGITAL } from '../lib/storeRules';
+import { fetchMyTrainerProfile } from '../lib/trainerDashboard';
 import { dark } from '../lib/theme';
 import CoursesScreen from './CoursesScreen';
 import DigitalProductsScreen from './DigitalProductsScreen';
 import MerchScreen from './MerchScreen';
 import TrainersScreen from './TrainersScreen';
+import TrainerToolsScreen from './TrainerToolsScreen';
 
-type Segment = 'trainers' | 'courses' | 'guides' | 'merch';
+type Segment = 'trainers' | 'courses' | 'guides' | 'merch' | 'tools';
 
 const ALL_SEGMENTS: { value: Segment; label: string }[] = [
   { value: 'trainers', label: '🧑‍🏫 Trainers' },
@@ -16,6 +18,9 @@ const ALL_SEGMENTS: { value: Segment; label: string }[] = [
   { value: 'guides', label: '📄 Guides & Plans' },
   { value: 'merch', label: '👕 Merch' },
 ];
+
+// Only for people who have a trainer profile: their private coaching toolkit.
+const TOOLS_SEGMENT = { value: 'tools' as const, label: '🧰 Trainer Tools' };
 
 // Courses and Guides & Plans are digital content, which the iOS and Android
 // apps can't sell outside store billing (see storeRules.ts).
@@ -31,15 +36,29 @@ const SEGMENTS = CAN_SELL_DIGITAL_CONTENT
 // marketplace experiences -- merged under one Shop tab.
 export default function ShopScreen() {
   const [segment, setSegment] = useState<Segment>('trainers');
+  const [isTrainer, setIsTrainer] = useState(false);
+
+  useEffect(() => {
+    let live = true;
+    fetchMyTrainerProfile()
+      .then((p) => live && setIsTrainer(!!p))
+      .catch(() => live && setIsTrainer(false));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const segments = isTrainer ? [...SEGMENTS, TOOLS_SEGMENT] : SEGMENTS;
 
   return (
     <View style={styles.container}>
-      <SegmentedHeader segments={SEGMENTS} active={segment} onChange={setSegment} />
+      <SegmentedHeader segments={segments} active={segment} onChange={setSegment} />
       <View style={styles.body}>
         {segment === 'trainers' && <TrainersScreen />}
         {segment === 'courses' && <CoursesScreen />}
         {segment === 'guides' && <DigitalProductsScreen />}
         {segment === 'merch' && <MerchScreen />}
+        {segment === 'tools' && isTrainer && <TrainerToolsScreen />}
       </View>
     </View>
   );
