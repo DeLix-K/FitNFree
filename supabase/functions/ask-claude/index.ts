@@ -27,9 +27,37 @@ function buildCorsHeaders(origin: string | null): Record<string, string> {
 }
 
 const FREE_DAILY_AI_LIMIT = 5;
+
+// Abuse ceilings, enforced from a log the caller can't write to or delete
+// (ai_usage_log, service-role only). They sit far above normal use -- the
+// friendly free-tier limit above is still the one users see -- and exist so a
+// scripted client can't turn this function into an unmetered Claude proxy.
+const MAX_CALLS_PER_MINUTE = 20;
+const MAX_CALLS_PER_DAY_FREE = 60;
+const MAX_CALLS_PER_DAY_PREMIUM = 400;
 const MAX_TEXT_LENGTH = 8000;
 const MAX_MESSAGES = 40;
 const MAX_IMAGE_BASE64_LENGTH = 8_000_000; // ~6MB decoded, comfortably under Anthropic's per-image limit
+
+// AI cost controls. The AI Coach chat and anything personalized/sensitive
+// (mood reflection, daily briefing, bedtime stories, ...) always use the
+// full model below and are never cached -- callers only get the cheaper
+// path by explicitly marking a one-shot call `routine: true` (see
+// lib/claude.ts), for genuinely routine, mostly-impersonal lookups:
+// nutrition search, per-exercise cues/guardrails, and equipment/food/menu
+// photo identification. Those repeat often enough across users (or cost
+// enough per call, for images) that this meaningfully cuts spend without a
+// user-visible quality drop for that kind of task.
+const DEFAULT_MODEL = 'claude-sonnet-5';
+const ROUTINE_MODEL = 'claude-haiku-4-5-20251001';
+
+async function hashCacheKey(parts: string[]): Promise<string> {
+  const bytes = new TextEncoder().encode(parts.join('\u0000'));
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('');
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req.headers.get('Origin'));
@@ -38,7 +66,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { prompt, image, messages, system } = await req.json();
+    const { prompt, image, messages, system, routine } = await req.json();
 
     const hasPrompt = typeof prompt === 'string' && prompt.length > 0;
     const hasMessages = Array.isArray(messages) && messages.length > 0;
@@ -141,6 +169,27 @@ Deno.serve(async (req) => {
 
     const isPremium = profile?.is_premium ?? false;
 
+    // Server-owned client for the usage log and the shared cache. Callers can
+    // neither read nor write either table directly.
+    const admin = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+
+    const sinceDay = new Date();
+    sinceDay.setUTCHours(0, 0, 0, 0);
+    const sinceMinute = new Date(Date.now() - 60_000);
+    const [{ count: callsToday }, { count: callsLastMinute }] = await Promise.all([
+      admin.from('ai_usage_log').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', sinceDay.toISOString()),
+      admin.from('ai_usage_log').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', sinceMinute.toISOString()),
+    ]);
+    if ((callsLastMinute ?? 0) >= MAX_CALLS_PER_MINUTE || (callsToday ?? 0) >= (isPremium ? MAX_CALLS_PER_DAY_PREMIUM : MAX_CALLS_PER_DAY_FREE)) {
+      return new Response(JSON.stringify({ error: 'Too many AI requests. Please wait a moment and try again.' }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    // Count the call before spending money on it (cache hits are free, so
+    // they're removed from the log again below).
+    const { data: usageRow } = await admin.from('ai_usage_log').insert({ user_id: user.id }).select('id').single();
+
     if (!isPremium) {
       const startOfToday = new Date();
       startOfToday.setUTCHours(0, 0, 0, 0);
@@ -158,6 +207,36 @@ Deno.serve(async (req) => {
           }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
+    }
+
+    // Conversational calls (askClaudeChat -- the AI Coach) never pass
+    // `routine`, so this is always false for them regardless of what a
+    // caller sent; `routine` only ever changes behavior for one-shot calls.
+    const isRoutine = routine === true && !hasMessages;
+    const model = isRoutine ? ROUTINE_MODEL : DEFAULT_MODEL;
+
+    let cacheKey: string | null = null;
+    if (isRoutine) {
+      cacheKey = await hashCacheKey([
+        model,
+        prompt ?? '',
+        system ?? '',
+        image ? `${image.mediaType}:${image.data}` : '',
+      ]);
+
+      const { data: cached } = await admin
+        .from('ai_response_cache')
+        .select('reply')
+        .eq('prompt_hash', cacheKey)
+        .maybeSingle();
+
+      if (cached?.reply) {
+        if (usageRow?.id) await admin.from('ai_usage_log').delete().eq('id', usageRow.id);
+        return new Response(JSON.stringify({ reply: cached.reply }), {
+          status: 200,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
       }
     }
 
@@ -194,7 +273,7 @@ Deno.serve(async (req) => {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-5',
+        model,
         max_tokens: 1024,
         thinking: { type: 'disabled' },
         ...(system ? { system } : {}),
@@ -214,6 +293,20 @@ Deno.serve(async (req) => {
     const data = await response.json();
     const textBlock = data.content?.find((block: { type: string }) => block.type === 'text');
     const reply = textBlock?.text ?? '';
+
+    if (isRoutine && cacheKey && reply) {
+      // Never let a cache-write problem fail a response the user already
+      // has a good reply for; on conflict (a concurrent identical request
+      // won the race) there's nothing to do either.
+      const { error: cacheError } = await admin
+        .from('ai_response_cache')
+        .insert({ prompt_hash: cacheKey, reply, model })
+        .select()
+        .maybeSingle();
+      if (cacheError && cacheError.code !== '23505') {
+        console.error('ai_response_cache insert failed', cacheError.message);
+      }
+    }
 
     return new Response(JSON.stringify({ reply }), {
       status: 200,

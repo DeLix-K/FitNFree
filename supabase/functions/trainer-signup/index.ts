@@ -31,6 +31,21 @@ function buildCorsHeaders(origin: string | null): Record<string, string> {
   };
 }
 
+// Only well-formed https:// links with no embedded credentials are stored;
+// these are later shown to (and opened by) other users.
+function cleanHttpsUrl(value: unknown, maxLength: number): string | null {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > maxLength) return null;
+  try {
+    const u = new URL(trimmed);
+    if (u.protocol !== 'https:' || u.username || u.password) return null;
+    return u.toString();
+  } catch {
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = buildCorsHeaders(req.headers.get('Origin'));
   if (req.method === 'OPTIONS') {
@@ -60,7 +75,7 @@ Deno.serve(async (req) => {
 
     const trimmedName = typeof displayName === 'string' ? displayName.trim() : '';
     const trimmedBio = typeof bio === 'string' ? bio.trim() : '';
-    const trimmedSpecialty = typeof specialty === 'string' ? specialty.trim() : '';
+    const trimmedSpecialty = typeof specialty === 'string' ? specialty.trim().slice(0, 120) : '';
     const price = Number(priceCents);
 
     const ALLOWED_FORMATS = ['in_person', 'virtual', 'online'];
@@ -68,11 +83,8 @@ Deno.serve(async (req) => {
       ? trainingFormat.filter((f) => ALLOWED_FORMATS.includes(f)).slice(0, 3)
       : [];
     const trimmedLocation = typeof locationText === 'string' ? locationText.trim().slice(0, 120) : '';
-    const trimmedVideoUrl = typeof introVideoUrl === 'string' && introVideoUrl.startsWith('https://') ? introVideoUrl : null;
-    const trimmedCallLink =
-      typeof defaultVideoCallLink === 'string' && defaultVideoCallLink.trim().length <= 300
-        ? defaultVideoCallLink.trim() || null
-        : null;
+    const trimmedVideoUrl = cleanHttpsUrl(introVideoUrl, 300);
+    const trimmedCallLink = cleanHttpsUrl(defaultVideoCallLink, 300);
     const ALLOWED_STYLES = ['high_energy', 'technical', 'empathetic'];
     const trimmedStyle = ALLOWED_STYLES.includes(coachingStyle) ? coachingStyle : null;
 
@@ -123,7 +135,7 @@ Deno.serve(async (req) => {
       .eq('id', user.id);
 
     if (profileError) {
-      return new Response(JSON.stringify({ error: `Could not enable trainer access: ${profileError.message}` }), {
+      return new Response(JSON.stringify({ error: 'Could not enable trainer access. Please try again.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -148,7 +160,7 @@ Deno.serve(async (req) => {
       );
 
     if (upsertError) {
-      return new Response(JSON.stringify({ error: `Could not save trainer profile: ${upsertError.message}` }), {
+      return new Response(JSON.stringify({ error: 'Could not save trainer profile. Please try again.' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });

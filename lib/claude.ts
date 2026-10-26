@@ -30,8 +30,22 @@ async function invokeAskClaude(body: Record<string, unknown>): Promise<string> {
   return data?.reply ?? '';
 }
 
-export async function askClaude(prompt: string, image?: ImageInput): Promise<string> {
-  return invokeAskClaude(image ? { prompt, image } : { prompt });
+// `routine: true` marks a call as a genuinely routine, non-personalized
+// lookup (nutrition search, a per-exercise cue, equipment/food/menu
+// identification) -- the server may answer it with a cheaper model and/or a
+// cached reply from another user's identical request. Never set this for
+// anything personalized or sensitive; see ask-claude/index.ts for what it
+// actually does.
+export async function askClaude(
+  prompt: string,
+  image?: ImageInput,
+  opts?: { routine?: boolean }
+): Promise<string> {
+  return invokeAskClaude({
+    prompt,
+    ...(image ? { image } : {}),
+    ...(opts?.routine ? { routine: true } : {}),
+  });
 }
 
 export async function askClaudeChat(messages: ChatMessage[], system?: string): Promise<string> {
@@ -108,6 +122,13 @@ export type InstantFoodEstimate = {
   note: string;
 };
 
+// AI output is untrusted text: keep parsed numbers inside plausible human
+// ranges so a manipulated or confused reply can't write absurd values into
+// the user's food log, and cap free-text lengths.
+const clampNum = (n: number, max: number) => (Number.isFinite(n) ? Math.min(max, Math.max(0, Math.round(n))) : 0);
+const MAX_KCAL = 5000;
+const MAX_GRAMS = 500;
+
 export function parseInstantFoodEstimate(text: string): InstantFoodEstimate | null {
   const get = (field: string) => {
     const line = text.split('\n').find((l) => l.trim().toUpperCase().startsWith(`${field}:`));
@@ -120,12 +141,12 @@ export function parseInstantFoodEstimate(text: string): InstantFoodEstimate | nu
     return Number.isFinite(n) ? Math.round(n) : 0;
   };
   return {
-    name,
-    calories: num('CALORIES'),
-    protein: num('PROTEIN'),
-    carbs: num('CARBS'),
-    fat: num('FAT'),
-    note: get('NOTE'),
+    name: name.slice(0, 120),
+    calories: clampNum(num('CALORIES'), MAX_KCAL),
+    protein: clampNum(num('PROTEIN'), MAX_GRAMS),
+    carbs: clampNum(num('CARBS'), MAX_GRAMS),
+    fat: clampNum(num('FAT'), MAX_GRAMS),
+    note: get('NOTE').slice(0, 300),
   };
 }
 
@@ -158,12 +179,12 @@ export function parseMenuScanItems(text: string): MenuScanItem[] {
     const match = lineRe.exec(rawLine.trim());
     if (!match) continue;
     items.push({
-      name: match[1].trim(),
-      calories: Math.round(Number(match[2])),
-      protein: Math.round(Number(match[3])),
-      carbs: Math.round(Number(match[4])),
-      fat: Math.round(Number(match[5])),
-      fit: match[6].trim(),
+      name: match[1].trim().slice(0, 120),
+      calories: clampNum(Number(match[2]), MAX_KCAL),
+      protein: clampNum(Number(match[3]), MAX_GRAMS),
+      carbs: clampNum(Number(match[4]), MAX_GRAMS),
+      fat: clampNum(Number(match[5]), MAX_GRAMS),
+      fit: match[6].trim().slice(0, 200),
     });
   }
   return items;

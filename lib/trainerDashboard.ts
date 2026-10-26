@@ -40,14 +40,12 @@ export async function fetchMyTrainerProfile(): Promise<TrainerProfile | null> {
   const userId = userData.user?.id;
   if (!userId) return null;
 
-  const { data, error } = await supabase
-    .from('trainer_profiles')
-    .select('*')
-    .eq('user_id', userId)
-    .maybeSingle();
+  // Via a function, because the private columns (Stripe account, default call
+  // link) are not readable straight from the table -- only by their owner.
+  const { data, error } = await supabase.rpc('my_trainer_profile').maybeSingle();
 
   if (error) throw new Error(error.message);
-  return data;
+  return data as TrainerProfile | null;
 }
 
 export async function fetchMyOrdersAsTrainer(): Promise<TrainerOrderView[]> {
@@ -122,11 +120,7 @@ export async function createTimeSlot(params: { startsAt: string; durationMinutes
   // Snapshot the trainer's current default call link onto the slot, so a
   // later profile edit never silently changes a client's already-booked
   // meeting link.
-  const { data: profile } = await supabase
-    .from('trainer_profiles')
-    .select('default_video_call_link')
-    .eq('user_id', userId)
-    .maybeSingle();
+  const { data: profile } = await supabase.rpc('my_trainer_profile').maybeSingle();
 
   const { error } = await supabase.from('trainer_time_slots').insert({
     trainer_user_id: userId,

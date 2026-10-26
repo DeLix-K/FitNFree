@@ -86,10 +86,15 @@ export async function unblockUser(blockedUserId: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export async function getThreadBlockStatus(otherPartyUserId: string): Promise<ThreadBlockStatus> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) return { blockedByMe: false, blockedByThem: false };
+  // Both ids are interpolated into a PostgREST filter string below, so only
+  // well-formed UUIDs may reach it.
+  if (!UUID_RE.test(otherPartyUserId) || !UUID_RE.test(userId)) return { blockedByMe: false, blockedByThem: false };
 
   const { data, error } = await supabase
     .from('blocked_users')

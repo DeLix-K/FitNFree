@@ -21,7 +21,7 @@ export default function FormGuardrailsCard({ exercise }: { exercise: Exercise })
     setLoading(true);
     setError(null);
     try {
-      const reply = await askClaude(buildFormGuardrailsPrompt(exercise));
+      const reply = await askClaude(buildFormGuardrailsPrompt(exercise), undefined, { routine: true });
       const parsed = parseFormGuardrails(reply);
       setDos(parsed.dos);
       setDonts(parsed.donts);
