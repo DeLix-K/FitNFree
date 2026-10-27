@@ -1,4 +1,4 @@
-# New in 1.0.1: Interval Clock and Trainer Tools
+# New in 1.0.1: Interval Clock, Trainer Tools and Body log
 
 Built on branch `release/1.0.1`, 2026-10-26. Neither has been run on a real phone, and the database part is not applied yet.
 
@@ -37,8 +37,17 @@ Built on branch `release/1.0.1`, 2026-10-26. Neither has been run on a real phon
 anonymous visitors cannot read it. Only people with a trainer profile can add rows, there are size limits per account, and deleting a trainer's account deletes it all.
 The screens remind trainers to use first names or initials and not to store anything sensitive. The photos themselves are **not** uploaded; only a yes/no "photos submitted" mark is stored.
 
+## 3. Body log (Progress tab, everyone)
+**Where:** Progress tab, a new "⚖️ Body" segment next to Streaks and Challenges.
+
+Weight, body fat and five body measurements with a chart and trends, units in kg/lb/stone and cm/in, a goal weight, CSV export, and **progress photos that stay only on the phone**
+(never uploaded). Full details, privacy wording, what was tested and what was not: `docs/release/weight-log.md`.
+
+**Extra steps for 1.0.1:** run `supabase/body_log.sql` in the SQL Editor (safe to run twice), and add the Body log wording to the privacy policy and App Privacy answers (see that document).
+The camera and photo-library permission text changed, so this is part of the new build, not an over-the-air update. Not yet run on a real phone.
+
 ## What you need to do before submitting 1.0.1
-1. **Run `supabase/trainer_tools.sql`** in the SQL Editor (safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.
+1. **Run `supabase/trainer_tools.sql`** and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.
 2. **Update the privacy policy and the App Privacy answers.** Trainers can now store personal details about their clients (a name or initials, a body weight, notes). That is data about third
    parties. Suggested policy wording (review before publishing):
    > **Trainer Tools.** Trainers can keep private notes about the people they coach: a name or initials, package and payment status, check-in dates, body weight and notes. This information is visible only to that trainer. It
