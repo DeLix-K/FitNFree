@@ -17,6 +17,7 @@ import EmptyStateCard from '../components/EmptyStateCard';
 import MilestoneBadges, { MILESTONES } from '../components/MilestoneBadges';
 import MilestoneCelebrationModal from '../components/MilestoneCelebrationModal';
 import StreakShareCard from '../components/StreakShareCard';
+import WorkoutReminderCard from '../components/WorkoutReminderCard';
 import {
   fetchFreezeCoveredDates,
   fetchLeaderboard,
@@ -35,6 +36,7 @@ import {
 import { fetchBodyStats } from '../lib/profile';
 import { recordActivityForActiveChallenges } from '../lib/challenges';
 import { dark } from '../lib/theme';
+import { markTrainedToday } from '../lib/workoutReminders';
 import { supabase } from '../lib/supabase';
 import type { LeaderboardEntry } from '../lib/types';
 
@@ -159,6 +161,7 @@ export default function StreaksScreen() {
       setDisplayName(stats.displayName);
       setNameInput(stats.displayName === 'Fitness Fan' ? '' : stats.displayName);
       setLoggedToday(logged);
+      if (logged) markTrainedToday().catch(() => {});
       setLeaderboard(board);
       setMonthLoggedDates(monthDates);
       setMonthFrozenDates(frozenDates);
@@ -191,6 +194,7 @@ export default function StreaksScreen() {
     const previousLongest = longestStreak;
     try {
       await logWorkoutToday(durationMinutes);
+      markTrainedToday().catch(() => {});
       setDurationPickerOpen(false);
       await recordActivityForActiveChallenges().catch(() => {});
       const newLongest = await load();
@@ -396,6 +400,8 @@ export default function StreaksScreen() {
                 </Text>
               </Pressable>
             )}
+
+            <WorkoutReminderCard />
 
             <View style={styles.freezeCard}>
               <Text style={styles.freezeIcon}>❄️</Text>

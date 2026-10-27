@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import ExerciseVolumeChart from '../components/ExerciseVolumeChart';
+import { RestCountdown } from '../components/RestTimerBar';
 import FormGuardrailsCard from '../components/FormGuardrailsCard';
 import LogSetCard from '../components/LogSetCard';
 import MindMuscleCueButton from '../components/MindMuscleCueButton';
@@ -68,7 +69,9 @@ export default function ExerciseDetailScreen({
   const unit = history[history.length - 1]?.weight_unit ?? detectWeightUnit();
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <View style={styles.container}>
+    <RestCountdown />
+    <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
       <View style={styles.headerRow}>
         <Pressable onPress={onBack} hitSlop={8}>
           <Text style={styles.backLink}>‹ Back</Text>
@@ -147,6 +150,7 @@ export default function ExerciseDetailScreen({
         onSelect={onNavigateToExercise}
       />
     </ScrollView>
+    </View>
   );
 }
 
@@ -154,6 +158,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: dark.background,
+  },
+  scroll: {
+    flex: 1,
   },
   content: {
     paddingHorizontal: 20,

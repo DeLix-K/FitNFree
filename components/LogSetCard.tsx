@@ -1,8 +1,12 @@
 import * as Haptics from 'expo-haptics';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { detectWeightUnit, logExerciseSet } from '../lib/exercises';
+import { DEFAULT_REST, type RestSettings } from '../lib/reminderPlan';
+import { loadRestSettings, saveRestSettings, startRest } from '../lib/restTimer';
 import { dark } from '../lib/theme';
+import { markTrainedToday } from '../lib/workoutReminders';
+import { RestSetup } from './RestTimerBar';
 import TactileNumberStepper from './TactileNumberStepper';
 
 export default function LogSetCard({ exerciseId, onLogged }: { exerciseId: string; onLogged: () => void }) {
@@ -12,12 +16,24 @@ export default function LogSetCard({ exerciseId, onLogged }: { exerciseId: strin
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
+  const [rest, setRest] = useState<RestSettings>(DEFAULT_REST);
+
+  useEffect(() => {
+    loadRestSettings().then(setRest).catch(() => {});
+  }, []);
+
+  const changeRest = (next: RestSettings) => {
+    setRest(next);
+    saveRestSettings(next).catch(() => {});
+  };
 
   const handleLog = async () => {
     setSaving(true);
     setError(null);
     try {
       await logExerciseSet({ exerciseId, weight, weightUnit: unit, reps });
+      markTrainedToday().catch(() => {});
+      if (rest.seconds > 0) startRest(rest.seconds, rest.notify);
       setJustLogged(true);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
       onLogged();
@@ -52,6 +68,8 @@ export default function LogSetCard({ exerciseId, onLogged }: { exerciseId: strin
           <TactileNumberStepper value={reps} step={1} min={1} onChange={setReps} />
         </View>
       </View>
+
+      <RestSetup settings={rest} onChange={changeRest} />
 
       <Pressable style={styles.logButton} onPress={handleLog} disabled={saving}>
         {saving ? (

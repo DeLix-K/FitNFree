@@ -46,6 +46,11 @@ Weight, body fat and five body measurements with a chart and trends, units in kg
 **Extra steps for 1.0.1:** run `supabase/body_log.sql` in the SQL Editor (safe to run twice), and add the Body log wording to the privacy policy and App Privacy answers (see that document).
 The camera and photo-library permission text changed, so this is part of the new build, not an over-the-air update. Not yet run on a real phone.
 
+## 4. Workout reminders and auto rest timer (Streaks screen and exercise pages)
+After logging a set, an optional rest countdown starts (off by default; 1:00 to 5:00, +15s, Skip, optional notification when it ends). Workout reminders: choose days and a time;
+the phone reminds you and skips a day you have already trained. Local notifications only, nothing new to run in Supabase, no new native code. Details, limits and what was not tested:
+`docs/release/workout-reminders.md`. Not yet run on a real phone.
+
 ## What you need to do before submitting 1.0.1
 1. **Run `supabase/trainer_tools.sql`** and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.
 2. **Update the privacy policy and the App Privacy answers.** Trainers can now store personal details about their clients (a name or initials, a body weight, notes). That is data about third
