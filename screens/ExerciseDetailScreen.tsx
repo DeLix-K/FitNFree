@@ -1,16 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import ExerciseVolumeChart from '../components/ExerciseVolumeChart';
 import { RestCountdown } from '../components/RestTimerBar';
 import FormGuardrailsCard from '../components/FormGuardrailsCard';
 import LogSetCard from '../components/LogSetCard';
 import MindMuscleCueButton from '../components/MindMuscleCueButton';
+import PersonalRecordsCard from '../components/PersonalRecordsCard';
 import SubstitutionSection from '../components/SubstitutionSection';
 import TrainerVideoPlayer from '../components/TrainerVideoPlayer';
 import {
   computePr,
   detectWeightUnit,
-  fetchExerciseSetHistory,
+  fetchAllExerciseSets,
   primaryMuscle,
   secondaryMuscles,
   volumeByDate,
@@ -46,18 +47,29 @@ export default function ExerciseDetailScreen({
   onNavigateToExercise: (exercise: Exercise) => void;
 }) {
   const [history, setHistory] = useState<ExerciseSetLog[]>([]);
+  const [historyComplete, setHistoryComplete] = useState(false); // false until the whole history has loaded; records are not announced before then
   const [loading, setLoading] = useState(true);
 
+  const latestRequest = useRef(0);
+
   const loadHistory = useCallback(async () => {
+    const request = ++latestRequest.current;
     try {
-      const data = await fetchExerciseSetHistory(exercise.id);
-      setHistory(data);
+      const { rows, complete } = await fetchAllExerciseSets(exercise.id);
+      if (request !== latestRequest.current) return; // a newer load (or another exercise) has taken over
+      setHistory(rows);
+      setHistoryComplete(complete);
     } catch {
+      if (request !== latestRequest.current) return;
       setHistory([]);
+      setHistoryComplete(false);
     }
   }, [exercise.id]);
 
   useEffect(() => {
+    // Moving to another exercise must not leave the last one's sets behind: personal records are worked out from this list.
+    setHistory([]);
+    setHistoryComplete(false);
     setLoading(true);
     loadHistory().finally(() => setLoading(false));
   }, [loadHistory]);
@@ -141,7 +153,9 @@ export default function ExerciseDetailScreen({
         <ExerciseVolumeChart pr={pr} volumePoints={volumePoints} unit={unit} />
       )}
 
-      <LogSetCard key={`log-${exercise.id}`} exerciseId={exercise.id} onLogged={loadHistory} />
+      {!loading ? <PersonalRecordsCard history={history} /> : null}
+
+      <LogSetCard key={`log-${exercise.id}`} exerciseId={exercise.id} onLogged={loadHistory} priorSets={historyComplete ? history : null} />
 
       <SubstitutionSection
         key={`sub-${exercise.id}`}

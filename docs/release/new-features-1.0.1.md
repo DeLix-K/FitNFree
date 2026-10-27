@@ -1,4 +1,4 @@
-# New in 1.0.1: Interval Clock, Trainer Tools and Body log
+# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders and PR badges
 
 Built on branch `release/1.0.1`, 2026-10-26. Neither has been run on a real phone, and the database part is not applied yet.
 
@@ -50,6 +50,11 @@ The camera and photo-library permission text changed, so this is part of the new
 After logging a set, an optional rest countdown starts (off by default; 1:00 to 5:00, +15s, Skip, optional notification when it ends). Workout reminders: choose days and a time;
 the phone reminds you and skips a day you have already trained. Local notifications only, nothing new to run in Supabase, no new native code. Details, limits and what was not tested:
 `docs/release/workout-reminders.md`. Not yet run on a real phone.
+
+## 5. Personal record badges (exercise pages)
+Log a set that beats your history and a "New personal record!" banner appears (heaviest weight, best estimated 1RM, or a rep record), plus a "Personal records" card listing the badges earned.
+Worked out on the phone from your logbook, so nothing new to run in Supabase and nothing new to declare. It also fixes the exercise page's PR boxes ("Heaviest Set" now truly the heaviest, kg and lb compared properly,
+all-time rather than 180 days). Details, limits and what was not tested: `docs/release/pr-badges.md`. Not yet run on a real phone.
 
 ## What you need to do before submitting 1.0.1
 1. **Run `supabase/trainer_tools.sql`** and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.

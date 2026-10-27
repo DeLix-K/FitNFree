@@ -1,7 +1,8 @@
+import { bestRecords, fromKg, readAllPages, toKg } from './prBadges';
 import { supabase } from './supabase';
 import type { Exercise, ExerciseSetLog } from './types';
 
-function todayLocalDate(): string {
+export function todayLocalDate(): string {
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -213,11 +214,27 @@ export async function fetchExerciseSetHistory(exerciseId: string, days = 180): P
   return data ?? [];
 }
 
-// Epley formula -- a standard, widely-used 1RM estimate, not a fabricated
-// number. Always labeled "Est." in the UI.
-export function estimatedOneRepMax(weight: number, reps: number): number {
-  if (reps <= 1) return weight;
-  return weight * (1 + reps / 30);
+// Every set ever logged for an exercise, oldest first, which is what personal records need (they are all-time, not "the last 180 days").
+// It is read a page at a time (see readAllPages), because the database limits how many rows one request returns. `complete` is false only if the
+// safety limit of 10,000 sets was reached; records are not announced from an incomplete list.
+export async function fetchAllExerciseSets(exerciseId: string): Promise<{ rows: ExerciseSetLog[]; complete: boolean }> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return { rows: [], complete: true };
+
+  return readAllPages<ExerciseSetLog>(async (from, to) => {
+    const { data, error } = await supabase
+      .from('exercise_set_logs')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('exercise_id', exerciseId)
+      .order('logged_date', { ascending: true })
+      .order('created_at', { ascending: true })
+      .order('id', { ascending: true })
+      .range(from, to);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
 }
 
 export type ExercisePr = {
@@ -227,24 +244,17 @@ export type ExercisePr = {
   totalSets: number;
 } | null;
 
-export function computePr(history: ExerciseSetLog[]): ExercisePr {
+// The current records, shown in `unit` (default: the unit of the latest set). "Heaviest" is the heaviest weight lifted, and the estimated 1RM
+// is the best Epley estimate from sets of 12 reps or fewer (see lib/prBadges.ts). Weights logged in kg and lb are compared properly.
+export function computePr(history: ExerciseSetLog[], unit: 'kg' | 'lb' = history[history.length - 1]?.weight_unit ?? detectWeightUnit()): ExercisePr {
   if (history.length === 0) return null;
-
-  let best = history[0];
-  let bestEst1RM = estimatedOneRepMax(best.weight, best.reps);
-  for (const log of history) {
-    const est = estimatedOneRepMax(log.weight, log.reps);
-    if (est > bestEst1RM) {
-      bestEst1RM = est;
-      best = log;
-    }
-  }
-
+  const r = bestRecords(history);
+  const round1 = (n: number) => Math.round(n * 10) / 10;
   return {
-    bestWeight: best.weight,
-    bestWeightUnit: best.weight_unit,
-    bestEst1RM: Math.round(bestEst1RM * 10) / 10,
-    totalSets: history.length,
+    bestWeight: r.heaviest ? round1(fromKg(toKg(r.heaviest.weight, r.heaviest.weight_unit), unit)) : 0,
+    bestWeightUnit: unit,
+    bestEst1RM: r.bestE1rm ? round1(fromKg(r.bestE1rm.kg, unit)) : 0,
+    totalSets: r.totalSets,
   };
 }
 

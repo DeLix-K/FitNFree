@@ -1,15 +1,19 @@
 import * as Haptics from 'expo-haptics';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { detectWeightUnit, logExerciseSet } from '../lib/exercises';
+import { detectWeightUnit, logExerciseSet, todayLocalDate } from '../lib/exercises';
+import { evaluateSet, type PrResult, type SetRow } from '../lib/prBadges';
 import { DEFAULT_REST, type RestSettings } from '../lib/reminderPlan';
 import { loadRestSettings, saveRestSettings, startRest } from '../lib/restTimer';
 import { dark } from '../lib/theme';
+import type { ExerciseSetLog } from '../lib/types';
 import { markTrainedToday } from '../lib/workoutReminders';
 import { RestSetup } from './RestTimerBar';
 import TactileNumberStepper from './TactileNumberStepper';
 
-export default function LogSetCard({ exerciseId, onLogged }: { exerciseId: string; onLogged: () => void }) {
+// `priorSets` is everything already logged for this exercise, used to spot a personal record. It is null when the history could not be loaded
+// in full, in which case no record is announced (a missing list must never make an ordinary set look like a PR).
+export default function LogSetCard({ exerciseId, onLogged, priorSets }: { exerciseId: string; onLogged: () => void; priorSets: ExerciseSetLog[] | null }) {
   const [unit, setUnit] = useState<'kg' | 'lb'>(detectWeightUnit());
   const [weight, setWeight] = useState(unit === 'kg' ? 20 : 45);
   const [reps, setReps] = useState(8);
@@ -17,6 +21,8 @@ export default function LogSetCard({ exerciseId, onLogged }: { exerciseId: strin
   const [error, setError] = useState<string | null>(null);
   const [justLogged, setJustLogged] = useState(false);
   const [rest, setRest] = useState<RestSettings>(DEFAULT_REST);
+  const [pr, setPr] = useState<PrResult | null>(null);
+  const loggedHere = useRef<SetRow[]>([]); // sets logged on this page, in case the history has not reloaded between two quick sets
 
   useEffect(() => {
     loadRestSettings().then(setRest).catch(() => {});
@@ -30,8 +36,16 @@ export default function LogSetCard({ exerciseId, onLogged }: { exerciseId: strin
   const handleLog = async () => {
     setSaving(true);
     setError(null);
+    setPr(null);
     try {
+      const next: SetRow = { weight, weight_unit: unit, reps, logged_date: todayLocalDate(), created_at: new Date().toISOString() };
+      const verdict = priorSets ? evaluateSet([...priorSets, ...loggedHere.current], next) : null;
       await logExerciseSet({ exerciseId, weight, weightUnit: unit, reps });
+      loggedHere.current.push(next);
+      if (verdict && (verdict.baseline || verdict.prs.length > 0)) {
+        setPr(verdict);
+        if (verdict.prs.length > 0) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+      }
       markTrainedToday().catch(() => {});
       if (rest.seconds > 0) startRest(rest.seconds, rest.notify);
       setJustLogged(true);
@@ -80,6 +94,22 @@ export default function LogSetCard({ exerciseId, onLogged }: { exerciseId: strin
       </Pressable>
 
       {error && <Text style={styles.error}>{error}</Text>}
+
+      {pr && pr.prs.length > 0 ? (
+        <View style={styles.prBanner} accessibilityRole="alert">
+          <Text style={styles.prTitle}>🏆 New personal record!</Text>
+          {pr.prs.map((p) => (
+            <Text key={p.kind} style={styles.prLine}>
+              {p.text}
+            </Text>
+          ))}
+        </View>
+      ) : null}
+      {pr && pr.baseline ? (
+        <View style={styles.baselineBanner}>
+          <Text style={styles.baselineText}>📌 First set logged for this exercise. That is your starting point; beat it next time to earn a PR.</Text>
+        </View>
+      ) : null}
     </View>
   );
 }
@@ -155,5 +185,36 @@ const styles = StyleSheet.create({
     color: dark.danger,
     fontSize: 12,
     marginTop: 8,
+  },
+  prBanner: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: dark.accent,
+    backgroundColor: dark.surfaceElevated,
+    borderRadius: 14,
+    padding: 12,
+  },
+  prTitle: {
+    color: dark.accent,
+    fontSize: 15,
+    fontWeight: '800',
+    marginBottom: 4,
+  },
+  prLine: {
+    color: dark.text,
+    fontSize: 13,
+    marginTop: 2,
+  },
+  baselineBanner: {
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: dark.border,
+    borderRadius: 14,
+    padding: 12,
+  },
+  baselineText: {
+    color: dark.textMuted,
+    fontSize: 12,
+    lineHeight: 18,
   },
 });

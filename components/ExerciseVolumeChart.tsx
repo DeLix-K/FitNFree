@@ -29,15 +29,11 @@ export default function ExerciseVolumeChart({
 
       <View style={styles.prRow}>
         <View style={styles.prBox}>
-          <Text style={styles.prValue}>
-            {pr.bestWeight} {pr.bestWeightUnit}
-          </Text>
-          <Text style={styles.prLabel}>Heaviest Set</Text>
+          <Text style={styles.prValue}>{pr.bestWeight > 0 ? `${pr.bestWeight} ${pr.bestWeightUnit}` : '—'}</Text>
+          <Text style={styles.prLabel}>Heaviest Weight</Text>
         </View>
         <View style={styles.prBox}>
-          <Text style={styles.prValue}>
-            {pr.bestEst1RM} {unit}
-          </Text>
+          <Text style={styles.prValue}>{pr.bestEst1RM > 0 ? `${pr.bestEst1RM} ${unit}` : '—'}</Text>
           <Text style={styles.prLabel}>Est. 1RM</Text>
         </View>
         <View style={styles.prBox}>
