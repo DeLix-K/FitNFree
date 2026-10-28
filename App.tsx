@@ -15,6 +15,7 @@ import DashboardScreen from './screens/DashboardScreen';
 import EquipmentScanScreen from './screens/EquipmentScanScreen';
 import ExerciseListScreen from './screens/ExerciseListScreen';
 import FormCheckScreen from './screens/FormCheckScreen';
+import ExportDataScreen from './screens/ExportDataScreen';
 import HistoryScreen from './screens/HistoryScreen';
 import ManageVideosScreen from './screens/ManageVideosScreen';
 import MoreScreen from './screens/MoreScreen';
@@ -136,6 +137,7 @@ export default function App() {
           {activeTab === 'shop' && <ShopScreen />}
           {activeTab === 'trainerDashboard' && <TrainerDashboardScreen />}
           {activeTab === 'history' && <HistoryScreen onBack={() => setActiveTab('profile')} />}
+          {activeTab === 'export' && <ExportDataScreen onBack={() => setActiveTab('profile')} />}
           {activeTab === 'profile' && <ProfileScreen onNavigate={setActiveTab} />}
           {activeTab === 'videos' && <ManageVideosScreen />}
           {activeTab === 'more' && <MoreScreen session={session} onNavigate={setActiveTab} />}

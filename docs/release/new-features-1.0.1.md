@@ -1,4 +1,4 @@
-# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders and PR badges
+# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders, PR badges and data export
 
 Built on branch `release/1.0.1`, 2026-10-26. Neither has been run on a real phone, and the database part is not applied yet.
 
@@ -55,6 +55,11 @@ the phone reminds you and skips a day you have already trained. Local notificati
 Log a set that beats your history and a "New personal record!" banner appears (heaviest weight, best estimated 1RM, or a rep record), plus a "Personal records" card listing the badges earned.
 Worked out on the phone from your logbook, so nothing new to run in Supabase and nothing new to declare. It also fixes the exercise page's PR boxes ("Heaviest Set" now truly the heaviest, kg and lb compared properly,
 all-time rather than 180 days). Details, limits and what was not tested: `docs/release/pr-badges.md`. Not yet run on a real phone.
+
+## 6. Export my data (Profile screen)
+Profile > Account > "📦 Export my data". One JSON file with everything the person has logged, or a separate spreadsheet (CSV) for exercise sets, workout days, body log, meals, sleep, mood, water, habit check-ins and runs/walks/rides.
+Made on the phone and handed to the share sheet; nothing is uploaded and **no new data is collected**, so no SQL and no App Privacy change. It also gives the privacy policy a plain answer to "can I get a copy of my data".
+Details, what is and is not in the files, and what was not tested: `docs/release/data-export.md`. Not yet run on a real phone.
 
 ## What you need to do before submitting 1.0.1
 1. **Run `supabase/trainer_tools.sql`** and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.

@@ -451,6 +451,10 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
         <Text style={styles.linkRowText}>🕘 Activity History</Text>
         <Text style={styles.linkRowArrow}>→</Text>
       </Pressable>
+      <Pressable style={styles.linkRow} onPress={() => onNavigate?.('export')}>
+        <Text style={styles.linkRowText}>📦 Export my data</Text>
+        <Text style={styles.linkRowArrow}>→</Text>
+      </Pressable>
       <View style={styles.linkRow}>
         <View style={{ flex: 1, paddingRight: 12 }}>
           <Text style={styles.linkRowText}>🤖 AI data sharing</Text>
