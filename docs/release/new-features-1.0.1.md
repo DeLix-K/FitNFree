@@ -1,4 +1,4 @@
-# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders, PR badges and data export
+# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders, PR badges, data export and client check-in forms
 
 Built on branch `release/1.0.1`, 2026-10-26. Neither has been run on a real phone, and the database part is not applied yet.
 
@@ -61,8 +61,13 @@ Profile > Account > "📦 Export my data". One JSON file with everything the per
 Made on the phone and handed to the share sheet; nothing is uploaded and **no new data is collected**, so no SQL and no App Privacy change. It also gives the privacy policy a plain answer to "can I get a copy of my data".
 Details, what is and is not in the files, and what was not tested: `docs/release/data-export.md`. Not yet run on a real phone.
 
+## 7. Client check-in forms (Trainer Tools > Forms, and Profile > My coaching check-ins)
+A trainer builds a weekly check-in form (ten standard questions they switch on or off, plus up to ten of their own), makes a one-time invite code for a client, and reads the check-ins that come back and replies.
+A client links by typing the code, fills in the form (everything optional), reads the feedback, and can stop sharing or delete their check-ins at any time. Only the linked trainer ever sees a client's answers.
+**This is new data shared between two people, so it needs the SQL, privacy-policy wording, App Privacy answers and review-note changes** listed in `docs/release/client-checkin-forms.md`. Not yet run on a real phone or against the real database.
+
 ## What you need to do before submitting 1.0.1
-1. **Run `supabase/trainer_tools.sql`** and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.
+1. **Run `supabase/trainer_tools.sql`**, then **`supabase/client_checkins.sql`** (it needs the first), and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.
 2. **Update the privacy policy and the App Privacy answers.** Trainers can now store personal details about their clients (a name or initials, a body weight, notes). That is data about third
    parties. Suggested policy wording (review before publishing):
    > **Trainer Tools.** Trainers can keep private notes about the people they coach: a name or initials, package and payment status, check-in dates, body weight and notes. This information is visible only to that trainer. It

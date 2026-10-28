@@ -451,6 +451,10 @@ export default function ProfileScreen({ onNavigate }: { onNavigate?: (tab: Tab) 
         <Text style={styles.linkRowText}>🕘 Activity History</Text>
         <Text style={styles.linkRowArrow}>→</Text>
       </Pressable>
+      <Pressable style={styles.linkRow} onPress={() => onNavigate?.('coaching')}>
+        <Text style={styles.linkRowText}>🤝 My coaching check-ins</Text>
+        <Text style={styles.linkRowArrow}>→</Text>
+      </Pressable>
       <Pressable style={styles.linkRow} onPress={() => onNavigate?.('export')}>
         <Text style={styles.linkRowText}>📦 Export my data</Text>
         <Text style={styles.linkRowArrow}>→</Text>

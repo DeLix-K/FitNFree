@@ -26,6 +26,7 @@ export type Tab =
   | 'nutrition'
   | 'history'
   | 'export'
+  | 'coaching'
   | 'progress'
   | 'shop'
   | 'trainerDashboard'
@@ -53,6 +54,7 @@ const MORE_TAB_VALUES: Tab[] = [
   'formCheck',
   'history',
   'export',
+  'coaching',
   'progress',
   'shop',
   'trainerDashboard',
