@@ -1,4 +1,4 @@
-# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders, PR badges, data export, client check-in forms and a records list
+# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders, PR badges, data export, client check-in forms, a records list and a friends feed
 
 Built on branch `release/1.0.1`, 2026-10-26. Neither has been run on a real phone, and the database part is not applied yet.
 
@@ -70,8 +70,12 @@ A client links by typing the code, fills in the form (everything optional), read
 One list of every personal record across all exercises: the badges earned recently, newest first, and the best lifts for each exercise, with search and sorting. Uses the same rules as the exercise page, worked out on the phone,
 so nothing new to run in Supabase and nothing new to declare. Tapping an exercise does not open its page yet. Details and what was not tested: `docs/release/all-records.md`. Not yet run on a real phone.
 
+## 9. Friends feed (Progress > Friends)
+People who choose to turn Friends on add each other (search by display name, request, accept), and see short automatic updates from each other (workout logged, streak milestone, record on a library exercise) with emoji cheers. Everything is off until chosen, each kind is its own switch, nothing is typed, and anyone can block, report, delete what they shared, or leave and delete everything.
+**This shares one person's activity with other people, so it needs the SQL, privacy-policy wording, App Privacy answers and review notes (user-generated content, with two demo accounts) in `docs/release/friends-feed.md`.** Not yet run on a real phone or the real database.
+
 ## What you need to do before submitting 1.0.1
-1. **Run `supabase/trainer_tools.sql`**, then **`supabase/client_checkins.sql`** (it needs the first), and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.
+1. **Run `supabase/trainer_tools.sql`**, then **`supabase/client_checkins.sql`** (it needs the first), **`supabase/body_log.sql`**, and **`supabase/friends_feed.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.
 2. **Update the privacy policy and the App Privacy answers.** Trainers can now store personal details about their clients (a name or initials, a body weight, notes). That is data about third
    parties. Suggested policy wording (review before publishing):
    > **Trainer Tools.** Trainers can keep private notes about the people they coach: a name or initials, package and payment status, check-in dates, body weight and notes. This information is visible only to that trainer. It

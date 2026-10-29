@@ -2,6 +2,7 @@ import * as Haptics from 'expo-haptics';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { detectWeightUnit, logExerciseSet, todayLocalDate } from '../lib/exercises';
+import { shareRecordIfOn } from '../lib/friendsApi';
 import { evaluateSet, type PrResult, type SetRow } from '../lib/prBadges';
 import { DEFAULT_REST, type RestSettings } from '../lib/reminderPlan';
 import { loadRestSettings, saveRestSettings, startRest } from '../lib/restTimer';
@@ -44,7 +45,11 @@ export default function LogSetCard({ exerciseId, onLogged, priorSets }: { exerci
       loggedHere.current.push(next);
       if (verdict && (verdict.baseline || verdict.prs.length > 0)) {
         setPr(verdict);
-        if (verdict.prs.length > 0) Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+        if (verdict.prs.length > 0) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy).catch(() => {});
+          // Only if the person switched on sharing records with friends; never waits on or breaks logging.
+          shareRecordIfOn(exerciseId, next, verdict.prs).catch(() => {});
+        }
       }
       markTrainedToday().catch(() => {});
       if (rest.seconds > 0) startRest(rest.seconds, rest.notify);

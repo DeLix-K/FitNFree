@@ -4,14 +4,16 @@ import SegmentedHeader from '../components/SegmentedHeader';
 import { dark } from '../lib/theme';
 import BodyScreen from './BodyScreen';
 import ChallengesScreen from './ChallengesScreen';
+import FriendsScreen from './FriendsScreen';
 import RecordsScreen from './RecordsScreen';
 import StreaksScreen from './StreaksScreen';
 
-type Segment = 'streaks' | 'challenges' | 'records' | 'body';
+type Segment = 'streaks' | 'challenges' | 'friends' | 'records' | 'body';
 
 const SEGMENTS: { value: Segment; label: string }[] = [
   { value: 'streaks', label: '🔥 Streaks' },
   { value: 'challenges', label: '🏆 Challenges' },
+  { value: 'friends', label: '👥 Friends' },
   { value: 'records', label: '🏅 Records' },
   { value: 'body', label: '⚖️ Body' },
 ];
@@ -27,7 +29,7 @@ export default function ProgressScreen() {
     <View style={styles.container}>
       <SegmentedHeader segments={SEGMENTS} active={segment} onChange={setSegment} />
       <View style={styles.body}>
-        {segment === 'streaks' ? <StreaksScreen /> : segment === 'challenges' ? <ChallengesScreen /> : segment === 'records' ? <RecordsScreen /> : <BodyScreen />}
+        {segment === 'streaks' ? <StreaksScreen /> : segment === 'challenges' ? <ChallengesScreen /> : segment === 'friends' ? <FriendsScreen /> : segment === 'records' ? <RecordsScreen /> : <BodyScreen />}
       </View>
     </View>
   );
