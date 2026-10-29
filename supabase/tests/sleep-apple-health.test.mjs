@@ -73,12 +73,12 @@ const migration = readFileSync(ROOT + 'supabase/sleep_source_apple_health.sql', 
 await db.exec(migration);
 await db.exec(migration); // twice is fine
 
-await t('after it, manual, oura and apple_health are all accepted', async () => {
-  for (const [d, s] of [['2026-10-02', 'manual'], ['2026-10-03', 'oura'], ['2026-10-04', 'apple_health']]) assert.equal((await row(A, d, s)).length, 1);
+await t('after it, manual, oura, apple_health and health_connect are all accepted', async () => {
+  for (const [d, s] of [['2026-10-02', 'manual'], ['2026-10-03', 'oura'], ['2026-10-04', 'apple_health'], ['2026-10-11', 'health_connect']]) assert.equal((await row(A, d, s)).length, 1);
 });
 
 await t('anything else is still refused', async () => {
-  for (const bad of ['fitbit', '', 'APPLE_HEALTH', 'apple_health; drop table sleep_logs']) await assert.rejects(() => row(A, '2026-10-05', bad), /check constraint/);
+  for (const bad of ['fitbit', '', 'APPLE_HEALTH', 'HEALTH_CONNECT', 'google_fit', 'health_connect; drop table sleep_logs', 'apple_health; drop table sleep_logs']) await assert.rejects(() => row(A, '2026-10-05', bad), /check constraint/);
 });
 
 await t('there is exactly one source constraint afterwards', async () => {
@@ -95,7 +95,18 @@ await t('a person sees only their own nights and cannot write or delete someone 
 await t('imported nights can be deleted by their owner (the "remove imported sleep" button)', async () => {
   const gone = await as(A, `delete from sleep_logs where source = 'apple_health' returning id`);
   assert.equal(gone.length, 1);
+  assert.equal((await as(A, 'select source from sleep_logs order by sleep_date')).map((x) => x.source).join(','), 'manual,oura,health_connect', 'only the Apple Health night went; the Health Connect one stays');
+  const gone2 = await as(A, `delete from sleep_logs where source = 'health_connect' returning id`);
+  assert.equal(gone2.length, 1);
   assert.equal((await as(A, 'select source from sleep_logs order by sleep_date')).map((x) => x.source).join(','), 'manual,oura');
+});
+
+await t('running the migration again after nights from both sources exist keeps every row', async () => {
+  await row(A, '2026-10-20', 'apple_health');
+  await row(A, '2026-10-21', 'health_connect');
+  await db.exec(migration);
+  assert.equal((await as(A, `select count(*)::int as c from sleep_logs where source in ('apple_health', 'health_connect')`))[0].c, 2);
+  await as(A, `delete from sleep_logs where sleep_date in ('2026-10-20', '2026-10-21')`);
 });
 
 await t('an upsert by date replaces an earlier Apple Health night (a refresh), as the import does', async () => {

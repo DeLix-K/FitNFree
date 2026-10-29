@@ -569,7 +569,7 @@ export type CartItem = {
   quantity: number;
 };
 
-export type SleepSource = 'manual' | 'oura' | 'apple_health';
+export type SleepSource = 'manual' | 'oura' | 'apple_health' | 'health_connect';
 
 export type SleepLog = {
   id: string;

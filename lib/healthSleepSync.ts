@@ -5,7 +5,7 @@ import { supabase } from './supabase';
 
 // Two switches, both off until the person turns them on, both kept only on this device:
 //  - "connected": they have used the Connect button, so the card reads Health when it opens.
-//  - "sleep import": copy their sleep nights from Apple Health into their FitNFree sleep log (a database row per night, theirs alone).
+//  - "sleep import": copy their sleep nights from Apple Health or Health Connect into their FitNFree sleep log (a database row per night, theirs alone).
 // Everything else read from Health (steps, workouts, heart rate, weight) is shown on the phone and never uploaded.
 
 const CONNECTED_KEY = 'fitnfree.health.connected.v1';
@@ -55,7 +55,7 @@ export async function importSleepFromHealth(source: HealthSource, days = 14): Pr
   const { data: existing, error: readError } = await supabase.from('sleep_logs').select('sleep_date, source').gte('sleep_date', since);
   if (readError) throw new Error(readError.message);
 
-  const { write, skipped } = planSleepWrites(nights, existing ?? []);
+  const { write, skipped } = planSleepWrites(nights, existing ?? [], source.id);
   if (write.length > 0) {
     const { error } = await supabase.from('sleep_logs').upsert(
       write.map((r) => ({ ...r, user_id: userId })),
@@ -66,9 +66,9 @@ export async function importSleepFromHealth(source: HealthSource, days = 14): Pr
   return { nights: nights.length, imported: write.length, skipped };
 }
 
-// Removes only the nights that came from Apple Health. Nights logged by hand or from Oura are untouched.
-export async function deleteImportedSleep(): Promise<number> {
-  const { data, error } = await supabase.from('sleep_logs').delete().eq('source', 'apple_health').select('id');
+// Removes only the nights that came from this health source. Nights logged by hand, from Oura, or from the other health source are untouched.
+export async function deleteImportedSleep(source: HealthSource): Promise<number> {
+  const { data, error } = await supabase.from('sleep_logs').delete().eq('source', source.id).select('id');
   if (error) throw new Error(error.message);
   return data?.length ?? 0;
 }

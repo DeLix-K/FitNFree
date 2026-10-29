@@ -1,3 +1,4 @@
+import { Linking } from 'react-native';
 import {
   isHealthDataAvailableAsync,
   queryCategorySamples,
@@ -48,6 +49,18 @@ const toMeters = (q: { quantity: number; unit: string } | undefined): number | n
 };
 
 export const appleHealthSource: HealthSource | null = {
+  id: 'apple_health',
+  name: 'Apple Health',
+  copy: {
+    intro:
+      'See your steps, workouts, heart rate and sleep from Apple Health and your Apple Watch next to your training. FitNFree only reads, and never changes or adds anything in Health. You choose exactly what to allow on the next screen.',
+    unavailable: 'Apple Health is not available on this device.',
+    settingsLink: 'Change what FitNFree can read (iPhone Settings)',
+    disconnected: 'Disconnected. FitNFree has stopped reading Health. To take back the permission itself, open Settings > Health > Data Access & Devices > FitNFree on your iPhone.',
+    nothingCameThrough: 'Nothing came through. If you expected data, check Settings > Health > Data Access & Devices > FitNFree and make sure the types are switched on. Apple does not tell an app which ones were refused.',
+  },
+  openSettings: () => Linking.openSettings(),
+
   available: async () => {
     try {
       return await isHealthDataAvailableAsync();

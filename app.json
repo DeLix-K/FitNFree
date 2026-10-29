@@ -29,7 +29,14 @@
         "android.permission.CAMERA",
         "android.permission.MODIFY_AUDIO_SETTINGS",
         "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_DISTANCE",
+        "android.permission.health.READ_RESTING_HEART_RATE",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_EXERCISE"
       ]
     },
     "web": {
@@ -101,6 +108,15 @@
           "NSHealthShareUsageDescription": "FitNFree reads your steps, workouts, heart rate, weight and sleep from Apple Health so you can see them next to your training. It only reads, never changes your Health data, and you choose what to allow.",
           "NSHealthUpdateUsageDescription": false,
           "background": false
+        }
+      ],
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
         }
       ]
     ],

@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import AppleHealthCard from '../components/AppleHealthCard';
+import HealthCard from '../components/HealthCard';
 import { appleHealthSource } from '../lib/appleHealth';
+import { healthConnectSource } from '../lib/healthConnect';
 import { disconnectOura, getOuraAuthUrl, getOuraData, type OuraData } from '../lib/oura';
 import { dark } from '../lib/theme';
 
@@ -13,8 +14,9 @@ const REDIRECT_URI = Platform.OS === 'web' && typeof window !== 'undefined'
 // developer registration mid-build, and Apple Health / Google Health Connect
 // / Garmin all need native SDKs a managed Expo web build can't call. Listed
 // here honestly as "Coming soon" rather than faking a connected state.
-// Apple Health is real on iPhone (read-only; see components/AppleHealthCard.tsx) and still "coming soon" everywhere else.
-const COMING_SOON = ['Fitbit', ...(appleHealthSource ? [] : ['Apple Health']), 'Google Health Connect', 'Garmin'];
+// Apple Health is real on iPhone and Health Connect is real on Android (both read-only; see components/HealthCard.tsx). Each is still "coming soon" elsewhere.
+const HEALTH_SOURCE = appleHealthSource ?? healthConnectSource;
+const COMING_SOON = ['Fitbit', ...(appleHealthSource ? [] : ['Apple Health']), ...(healthConnectSource ? [] : ['Google Health Connect']), 'Garmin'];
 
 export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
   const [data, setData] = useState<OuraData | null>(null);
@@ -81,7 +83,7 @@ export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
 
       {error && <Text style={styles.error}>{error}</Text>}
 
-      {appleHealthSource ? <AppleHealthCard source={appleHealthSource} /> : null}
+      {HEALTH_SOURCE ? <HealthCard source={HEALTH_SOURCE} /> : null}
 
       <View style={styles.deviceRow}>
         <View style={styles.deviceIconWrap}>

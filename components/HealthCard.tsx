@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Linking, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { averageOf, formatDuration, sleepNights, type DayTotal, type Night, type WorkoutSummary } from '../lib/healthSummary';
 import { deleteImportedSleep, getHealthPrefs, importSleepFromHealth, setHealthConnected, setSleepImport } from '../lib/healthSleepSync';
 import type { HealthSource, TodayStats } from '../lib/healthTypes';
 import { dark } from '../lib/theme';
 
-// Apple Health on the Wearables screen (iPhone only). Reads steps, active energy, distance, resting heart rate, body weight, sleep and workouts,
+// Apple Health (iPhone) or Health Connect (Android) on the Wearables screen. Reads steps, active energy, distance, resting heart rate, body weight, sleep and workouts,
 // and writes NOTHING back to Health. Reading happens on the phone. Only if the person switches on "Add my sleep to my sleep log" are sleep nights
 // copied to their own sleep log; nothing else leaves the phone.
 
 type Data = { today: TodayStats; week: DayTotal[]; night: Night | null; workouts: WorkoutSummary[] };
 const dayLabel = (iso: string) => ['S', 'M', 'T', 'W', 'T', 'F', 'S'][new Date(`${iso}T00:00:00`).getDay()];
 
-export default function AppleHealthCard({ source }: { source: HealthSource }) {
+export default function HealthCard({ source }: { source: HealthSource }) {
   const [available, setAvailable] = useState<boolean | null>(null);
   const [connected, setConnected] = useState(false);
   const [sleepImport, setSleepImportState] = useState(false);
@@ -90,8 +90,8 @@ export default function AppleHealthCard({ source }: { source: HealthSource }) {
     setBusy(true);
     setError(null);
     try {
-      const n = await deleteImportedSleep();
-      setNote(`Removed ${n} night${n === 1 ? '' : 's'} that came from Apple Health.`);
+      const n = await deleteImportedSleep(source);
+      setNote(`Removed ${n} night${n === 1 ? '' : 's'} that came from ${source.name}.`);
     } catch (e) {
       setError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -104,15 +104,15 @@ export default function AppleHealthCard({ source }: { source: HealthSource }) {
     setConnected(false);
     setSleepImportState(false);
     setData(null);
-    setNote('Disconnected. FitNFree has stopped reading Health. To take back the permission itself, open Settings > Health > Data Access & Devices > FitNFree on your iPhone.');
+    setNote(source.copy.disconnected);
   };
 
   if (available === null) return <ActivityIndicator style={{ marginVertical: 16 }} color={dark.accent} />;
   if (!available) {
     return (
       <View style={styles.card}>
-        <Text style={styles.title}>Apple Health</Text>
-        <Text style={styles.body}>Apple Health is not available on this device.</Text>
+        <Text style={styles.title}>{source.name}</Text>
+        <Text style={styles.body}>{source.copy.unavailable}</Text>
       </View>
     );
   }
@@ -122,18 +122,15 @@ export default function AppleHealthCard({ source }: { source: HealthSource }) {
   return (
     <View style={styles.card}>
       <View style={styles.head}>
-        <Text style={styles.title}>Apple Health</Text>
+        <Text style={styles.title}>{source.name}</Text>
         <Text style={[styles.status, connected && styles.statusOn]}>{connected ? 'Connected' : 'Not connected'}</Text>
       </View>
 
       {!connected ? (
         <>
-          <Text style={styles.body}>
-            See your steps, workouts, heart rate and sleep from Apple Health and your Apple Watch next to your training. FitNFree only reads, and never changes or adds anything in Health.
-            You choose exactly what to allow on the next screen.
-          </Text>
-          <Pressable style={[styles.button, busy && styles.disabled]} onPress={connect} disabled={busy} accessibilityRole="button" accessibilityLabel="Connect Apple Health">
-            <Text style={styles.buttonText}>{busy ? 'Connecting…' : 'Connect Apple Health'}</Text>
+          <Text style={styles.body}>{source.copy.intro}</Text>
+          <Pressable style={[styles.button, busy && styles.disabled]} onPress={connect} disabled={busy} accessibilityRole="button" accessibilityLabel={`Connect ${source.name}`}>
+            <Text style={styles.buttonText}>{busy ? 'Connecting…' : `Connect ${source.name}`}</Text>
           </Pressable>
         </>
       ) : (
@@ -182,7 +179,7 @@ export default function AppleHealthCard({ source }: { source: HealthSource }) {
                 ))
               )}
               {data.today.steps === 0 && data.week.every((d) => d.value === 0) && data.workouts.length === 0 && !data.night ? (
-                <Text style={styles.hint}>Nothing came through. If you expected data, check Settings &gt; Health &gt; Data Access &amp; Devices &gt; FitNFree and make sure the types are switched on. Apple does not tell an app which ones were refused.</Text>
+                <Text style={styles.hint}>{source.copy.nothingCameThrough}</Text>
               ) : null}
             </>
           ) : (
@@ -192,7 +189,7 @@ export default function AppleHealthCard({ source }: { source: HealthSource }) {
           <View style={styles.sleepBox}>
             <View style={{ flex: 1 }}>
               <Text style={styles.sleepTitle}>Add my sleep to my sleep log</Text>
-              <Text style={styles.fine}>Copies your last 2 weeks of nights from Health into your FitNFree sleep log, and keeps them up to date when you open this screen. It never replaces a night you logged yourself or got from Oura. Off by default.</Text>
+              <Text style={styles.fine}>Copies your last 2 weeks of nights from {source.name} into your FitNFree sleep log, and keeps them up to date when you open this screen. It never replaces a night you logged yourself or got from Oura. Off by default.</Text>
             </View>
             <Pressable style={[styles.switch, sleepImport && styles.switchOn, busy && styles.disabled]} onPress={toggleSleep} disabled={busy} accessibilityRole="switch" accessibilityState={{ checked: sleepImport }} accessibilityLabel="Add my sleep to my sleep log">
               <View style={[styles.knob, sleepImport && styles.knobOn]} />
@@ -210,8 +207,8 @@ export default function AppleHealthCard({ source }: { source: HealthSource }) {
               <Text style={styles.ghostText}>Disconnect</Text>
             </Pressable>
           </View>
-          <Pressable onPress={() => Linking.openSettings().catch(() => {})} accessibilityRole="link">
-            <Text style={styles.link}>Change what FitNFree can read (iPhone Settings)</Text>
+          <Pressable onPress={() => Promise.resolve(source.openSettings()).catch(() => {})} accessibilityRole="link">
+            <Text style={styles.link}>{source.copy.settingsLink}</Text>
           </Pressable>
         </>
       )}

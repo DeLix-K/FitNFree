@@ -1,5 +1,5 @@
-// Turns raw Apple Health readings into what FitNFree shows: nights of sleep, steps per day, workouts. Pure functions with no imports, so the
-// rules can be tested on their own (scripts/test-health-summary.mjs). The native HealthKit calls live in lib/appleHealth.ts.
+// Turns raw Apple Health and Android Health Connect readings into what FitNFree shows: nights of sleep, steps per day, workouts. Pure functions with no
+// imports, so the rules can be tested on their own (scripts/test-health-summary.mjs). The native calls live in lib/appleHealth.ios.ts and lib/healthConnect.android.ts.
 //
 // Nothing is invented: a sleep stage is only reported when Health actually recorded stages, and a night is only reported when there is a real
 // block of sleep in the data.
@@ -108,6 +108,39 @@ export function sleepNights(samples: SleepSample[], opts: { minAsleepMinutes?: n
   return [...best.values()].sort((a, b) => (a.sleepDate < b.sleepDate ? 1 : a.sleepDate > b.sleepDate ? -1 : 0));
 }
 
+// ── Android Health Connect sleep ────────────────────────────────────────────────────────────────
+// Health Connect reports a sleep SESSION, with optional stages. These are turned into the same samples Apple Health gives (with Apple's values), so one set
+// of rules (sleepNights) handles both. Health Connect's stage numbers: 0 unknown, 1 awake, 2 sleeping, 3 out of bed, 4 light, 5 deep, 6 REM, 7 awake in bed.
+export type HcSleepSession = { startTime: string; endTime: string; stages?: { startTime: string; endTime: string; stage: number }[] | null };
+
+const HC_STAGE_TO_VALUE: Record<number, number> = {
+  1: SLEEP_VALUE.awake,
+  2: SLEEP_VALUE.asleepUnspecified,
+  4: SLEEP_VALUE.core, // Health Connect's "light" is Apple's "core"
+  5: SLEEP_VALUE.deep,
+  6: SLEEP_VALUE.rem,
+  7: SLEEP_VALUE.awake,
+};
+
+export function healthConnectSleepSamples(sessions: HcSleepSession[]): SleepSample[] {
+  const out: SleepSample[] = [];
+  const add = (start: string, end: string, value: number) => {
+    const a = new Date(start);
+    const b = new Date(end);
+    if (Number.isFinite(a.getTime()) && Number.isFinite(b.getTime()) && b > a) out.push({ start: a, end: b, value });
+  };
+  for (const s of sessions) {
+    if (s.stages && s.stages.length > 0) {
+      // Stages the person was out of bed for, or that are unknown, are left out: they are not sleep.
+      for (const st of s.stages) if (st.stage in HC_STAGE_TO_VALUE) add(st.startTime, st.endTime, HC_STAGE_TO_VALUE[st.stage]);
+    } else {
+      // A session with no stages is just "asleep between these times".
+      add(s.startTime, s.endTime, SLEEP_VALUE.asleepUnspecified);
+    }
+  }
+  return out;
+}
+
 // ── Steps and other daily totals ────────────────────────────────────────────────────────────────
 export type DayTotal = { date: string; value: number };
 
@@ -145,7 +178,7 @@ const WORKOUT_LABELS: Record<number, string> = {
 export const workoutLabel = (type: number): string => WORKOUT_LABELS[type] ?? 'Workout';
 
 export function summarizeWorkouts(
-  raw: { type: number; start: Date; durationSeconds: number; kcal?: number | null; meters?: number | null }[],
+  raw: { type: number; start: Date; durationSeconds: number; kcal?: number | null; meters?: number | null; label?: string }[],
   limit = 10
 ): WorkoutSummary[] {
   return raw
@@ -154,7 +187,7 @@ export function summarizeWorkouts(
     .slice(0, limit)
     .map((w) => ({
       type: w.type,
-      label: workoutLabel(w.type),
+      label: w.label ?? workoutLabel(w.type),
       start: w.start,
       minutes: Math.round(w.durationSeconds / 60),
       kcal: w.kcal !== null && w.kcal !== undefined && w.kcal > 0 ? Math.round(w.kcal) : null,
@@ -164,6 +197,9 @@ export function summarizeWorkouts(
 
 // ── What to put into the sleep log ──────────────────────────────────────────────────────────────
 export type ExistingSleepRow = { sleep_date: string; source: string };
+// Where a night of sleep came from. The same names are stored in sleep_logs.source (see supabase/sleep_source_health_connect.sql).
+export type HealthSourceId = 'apple_health' | 'health_connect';
+
 export type SleepRowToWrite = {
   sleep_date: string;
   duration_minutes: number;
@@ -173,18 +209,18 @@ export type SleepRowToWrite = {
   rem_minutes: number | null;
   light_minutes: number | null;
   awake_minutes: number | null;
-  source: 'apple_health';
+  source: HealthSourceId;
 };
 
-// Writes only nights that have no entry yet, or whose entry came from Apple Health before (so a refresh can correct it).
-// A night the person logged by hand, or that Oura recorded, is never overwritten.
-export function planSleepWrites(nights: Night[], existing: ExistingSleepRow[]): { write: SleepRowToWrite[]; skipped: number } {
+// Writes only nights that have no entry yet, or whose entry came from this same health source before (so a refresh can correct it).
+// A night the person logged by hand, that Oura recorded, or that came from another health source, is never overwritten.
+export function planSleepWrites(nights: Night[], existing: ExistingSleepRow[], source: HealthSourceId = 'apple_health'): { write: SleepRowToWrite[]; skipped: number } {
   const taken = new Map(existing.map((r) => [r.sleep_date, r.source]));
   const write: SleepRowToWrite[] = [];
   let skipped = 0;
   for (const n of nights) {
     const src = taken.get(n.sleepDate);
-    if (src && src !== 'apple_health') {
+    if (src && src !== source) {
       skipped++;
       continue;
     }
@@ -197,7 +233,7 @@ export function planSleepWrites(nights: Night[], existing: ExistingSleepRow[]): 
       rem_minutes: n.remMinutes,
       light_minutes: n.lightMinutes,
       awake_minutes: n.awakeMinutes,
-      source: 'apple_health',
+      source,
     });
   }
   return { write, skipped };

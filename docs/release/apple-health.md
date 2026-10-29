@@ -1,5 +1,7 @@
 # Apple Health sync (read-only, iPhone): what was built, what it needs, how to ship it
 
+> Android has its own read-only counterpart built on the same card and sleep import: see `docs/release/health-connect.md`.
+
 Built 2026-10-26 on branch `feature/apple-health` (from `release/1.0.1`). **Not run on a real iPhone, not built with EAS, not pushed.**
 Everything here was checked on what can be checked without a phone: the logic, the database change, the screen in a browser with sample data,
 the generated iOS configuration, and that the iPhone, Android and web bundles all build.

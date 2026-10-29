@@ -1,8 +1,9 @@
--- Lets a sleep night be marked as coming from Apple Health (source = 'apple_health'), next to 'manual' and 'oura'.
--- Run this in the Supabase SQL Editor BEFORE shipping the app update that has the Apple Health sleep import. Safe to run more than once.
+-- Lets a sleep night be marked as coming from Apple Health (source = 'apple_health') or Android Health Connect (source = 'health_connect'), next to 'manual' and 'oura'.
+-- Run this in the Supabase SQL Editor BEFORE shipping the app update that has the Apple Health or Health Connect sleep import. Safe to run more than once, and it
+-- always sets the same four allowed values, so running it again after nights from either source exist is fine.
 --
 -- Nothing else about sleep_logs changes: the same row-level security applies (each person can only read and write their own nights), and the
--- Apple Health import never overwrites a night that was logged by hand or came from Oura.
+-- imports never overwrite a night that was logged by hand, came from Oura, or came from the other health source.
 
 do $$
 declare
@@ -22,4 +23,4 @@ end
 $$;
 
 alter table public.sleep_logs
-  add constraint sleep_logs_source_check check (source in ('manual', 'oura', 'apple_health'));
+  add constraint sleep_logs_source_check check (source in ('manual', 'oura', 'apple_health', 'health_connect'));
