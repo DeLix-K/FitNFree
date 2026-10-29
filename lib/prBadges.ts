@@ -138,6 +138,100 @@ export function bestRecords(history: SetRow[]): Records {
   return { heaviest, bestE1rm, totalSets: history.length };
 }
 
+// ── Every exercise at once (the "My records" list) ──────────────────────────────────────────────────
+export type ExerciseSetRow = SetRow & { exercise_id: string };
+export type ExerciseSummary = {
+  exerciseId: string;
+  name: string;
+  totalSets: number;
+  lastDate: string; // the last day this exercise was trained
+  heaviest: SetRow | null; // null for an exercise that has only ever been done with no weight
+  bestE1rm: { set: SetRow; kg: number } | null;
+  mostBodyweightReps: number | null; // the best no-weight set, in reps
+  prCount: number; // sets that earned a badge when they were logged
+  lastPrDate: string | null;
+};
+export type FeedEvent = PrEvent & { exerciseId: string; name: string };
+export type Overview = { exercises: ExerciseSummary[]; events: FeedEvent[]; setCount: number };
+
+export const UNKNOWN_EXERCISE = 'Unknown exercise';
+
+// Records for every exercise from one list of sets. Each exercise is worked out exactly as on its own page (prHistory and bestRecords), so a record shown here
+// is the same record shown there. `events` is every badge ever earned, newest first, across all exercises.
+export function recordsOverview(rows: ExerciseSetRow[], names: Record<string, string> | Map<string, string> = {}): Overview {
+  const nameOf = (id: string): string => (names instanceof Map ? names.get(id) : names[id]) || UNKNOWN_EXERCISE;
+  const groups = new Map<string, SetRow[]>();
+  for (const r of rows) {
+    const g = groups.get(r.exercise_id);
+    if (g) g.push(r);
+    else groups.set(r.exercise_id, [r]);
+  }
+  const exercises: ExerciseSummary[] = [];
+  const all: { e: FeedEvent; i: number }[] = [];
+  let i = 0;
+  for (const [exerciseId, sets] of groups) {
+    const name = nameOf(exerciseId);
+    const events = prHistory(sets);
+    const best = bestRecords(sets);
+    let lastDate = '';
+    let reps: number | null = null;
+    for (const s of sets) {
+      if (s.logged_date > lastDate) lastDate = s.logged_date;
+      if (!(s.weight > 0) && s.reps >= 1 && (reps === null || s.reps > reps)) reps = s.reps;
+    }
+    for (const ev of events) all.push({ e: { ...ev, exerciseId, name }, i: i++ });
+    exercises.push({
+      exerciseId,
+      name,
+      totalSets: sets.length,
+      lastDate,
+      heaviest: best.heaviest,
+      bestE1rm: best.bestE1rm,
+      mostBodyweightReps: reps,
+      prCount: events.length,
+      lastPrDate: events.length ? events[events.length - 1].set.logged_date : null,
+    });
+  }
+  // newest first: by day, then by when it was logged, then in the order read
+  all.sort((a, b) => {
+    const da = a.e.set.logged_date;
+    const db = b.e.set.logged_date;
+    if (da !== db) return da < db ? 1 : -1;
+    const ca = a.e.set.created_at ?? '';
+    const cb = b.e.set.created_at ?? '';
+    if (ca !== cb) return ca < cb ? 1 : -1;
+    return b.i - a.i;
+  });
+  return { exercises, events: all.map((x) => x.e), setCount: rows.length };
+}
+
+export type ExerciseSort = 'recent' | 'name' | 'heaviest';
+
+// Case-insensitive match on the exercise name; an empty search keeps everything.
+export const filterExercises = (list: ExerciseSummary[], query: string): ExerciseSummary[] => {
+  const q = query.trim().toLowerCase();
+  return q ? list.filter((x) => x.name.toLowerCase().includes(q)) : list;
+};
+
+const byName = (a: ExerciseSummary, b: ExerciseSummary): number => a.name.localeCompare(b.name) || (a.exerciseId < b.exerciseId ? -1 : 1);
+
+// recent: the latest badge first, then the most recently trained; name: A to Z; heaviest: the heaviest lift first (kg and lb compared in kg), no-weight exercises last.
+export function sortExercises(list: ExerciseSummary[], mode: ExerciseSort): ExerciseSummary[] {
+  const out = [...list];
+  if (mode === 'name') return out.sort(byName);
+  if (mode === 'heaviest') {
+    const kg = (x: ExerciseSummary): number => (x.heaviest ? toKg(x.heaviest.weight, x.heaviest.weight_unit) : -1);
+    return out.sort((a, b) => kg(b) - kg(a) || byName(a, b));
+  }
+  return out.sort((a, b) => {
+    const pa = a.lastPrDate ?? '';
+    const pb = b.lastPrDate ?? '';
+    if (pa !== pb) return pa < pb ? 1 : -1;
+    if (a.lastDate !== b.lastDate) return a.lastDate < b.lastDate ? 1 : -1;
+    return byName(a, b);
+  });
+}
+
 export const KIND_LABEL: Record<PrKind, string> = { weight: 'Heaviest weight', e1rm: 'Est. 1RM', reps: 'Rep record' };
 export const prSummary = (prs: Pr[]): string => prs.map((p) => KIND_LABEL[p.kind]).join(' + ');
 

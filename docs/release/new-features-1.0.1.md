@@ -1,4 +1,4 @@
-# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders, PR badges, data export and client check-in forms
+# New in 1.0.1: Interval Clock, Trainer Tools, Body log, reminders, PR badges, data export, client check-in forms and a records list
 
 Built on branch `release/1.0.1`, 2026-10-26. Neither has been run on a real phone, and the database part is not applied yet.
 
@@ -65,6 +65,10 @@ Details, what is and is not in the files, and what was not tested: `docs/release
 A trainer builds a weekly check-in form (ten standard questions they switch on or off, plus up to ten of their own), makes a one-time invite code for a client, and reads the check-ins that come back and replies.
 A client links by typing the code, fills in the form (everything optional), reads the feedback, and can stop sharing or delete their check-ins at any time. Only the linked trainer ever sees a client's answers.
 **This is new data shared between two people, so it needs the SQL, privacy-policy wording, App Privacy answers and review-note changes** listed in `docs/release/client-checkin-forms.md`. Not yet run on a real phone or against the real database.
+
+## 8. My records (Progress > Records)
+One list of every personal record across all exercises: the badges earned recently, newest first, and the best lifts for each exercise, with search and sorting. Uses the same rules as the exercise page, worked out on the phone,
+so nothing new to run in Supabase and nothing new to declare. Tapping an exercise does not open its page yet. Details and what was not tested: `docs/release/all-records.md`. Not yet run on a real phone.
 
 ## What you need to do before submitting 1.0.1
 1. **Run `supabase/trainer_tools.sql`**, then **`supabase/client_checkins.sql`** (it needs the first), and **`supabase/body_log.sql`** in the SQL Editor (each is safe to run twice). Without it the Trainer Tools tab will show errors when a trainer opens it.

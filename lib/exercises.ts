@@ -237,6 +237,32 @@ export async function fetchAllExerciseSets(exerciseId: string): Promise<{ rows: 
   });
 }
 
+// Every set the person has ever logged, for every exercise, with the exercise's name, for the "My records" list. Read a page at a time in a fixed order
+// (the database limits each request). `complete` is false only if the safety limit of 50,000 sets was reached, in which case the screen says the list may be out of date.
+export async function fetchAllSetsWithNames(): Promise<{ rows: (ExerciseSetLog & { exercises?: { name: string } | { name: string }[] | null })[]; complete: boolean }> {
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user?.id;
+  if (!userId) return { rows: [], complete: true };
+
+  return readAllPages(
+    async (from, to) => {
+      const { data, error } = await supabase
+        .from('exercise_set_logs')
+        .select('id, exercise_id, logged_date, weight, weight_unit, reps, created_at, exercises(name)')
+        .eq('user_id', userId)
+        .order('logged_date', { ascending: true })
+        .order('created_at', { ascending: true })
+        .order('id', { ascending: true })
+        .range(from, to);
+      if (error) throw new Error(error.message);
+      return (data ?? []) as unknown as (ExerciseSetLog & { exercises?: { name: string } | { name: string }[] | null })[];
+    },
+    1000,
+    50_000,
+    120
+  );
+}
+
 export type ExercisePr = {
   bestWeight: number;
   bestWeightUnit: 'kg' | 'lb';
