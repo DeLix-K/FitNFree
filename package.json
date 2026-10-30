@@ -6,7 +6,8 @@
     "autolinking": {
       "android": {
         "exclude": [
-          "react-native-maps"
+          "react-native-maps",
+          "react-native-watch-connectivity"
         ]
       }
     }
@@ -46,6 +47,7 @@
     "react-native-svg": "15.15.4",
     "react-native-url-polyfill": "^4.0.0",
     "react-native-view-shot": "5.1.0",
+    "react-native-watch-connectivity": "2.0.0",
     "react-native-web": "^0.21.2",
     "react-native-webview": "13.16.1"
   },

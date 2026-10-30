@@ -2,11 +2,13 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { fetchFreezeCoveredDates, fetchLoggedDates, fetchWeeklyTarget, getMyStats } from './streaks';
 import { buildSnapshot, startOfWeek, toDateStr } from './widgetSnapshot';
+import { publishWatchSnapshot } from './watchBridge';
 import { publishWidgetSnapshot, widgetsSupported } from './widgetBridge';
 
-// Keeps the home-screen widget up to date: reads the streak, this week's workouts and the weekly target, and hands them to the widget.
-// Runs when the app opens, comes back to the foreground, or a workout is logged; erases what the widget shows when the person signs out.
-// The widget gets nothing else (see lib/widgetSnapshot.ts), and nothing here is sent anywhere: it stays on the phone in the app's own shared storage.
+// Keeps the home-screen widget and the Apple Watch app up to date: reads the streak, this week's workouts and the weekly target, and hands them to both.
+// Runs when the app opens, comes back to the foreground, or a workout is logged; erases what they show when the person signs out.
+// They get nothing else (see lib/widgetSnapshot.ts), and nothing here is sent to a server: it stays on the person's own devices (the phone's shared
+// storage for the widget, the phone-to-watch link for the watch).
 
 let running: Promise<void> | null = null;
 
@@ -26,7 +28,9 @@ export function refreshWidgetSnapshot(): Promise<void> {
         fetchFreezeCoveredDates(toDateStr(recentStart), toDateStr(now)),
         fetchWeeklyTarget(),
       ]);
-      publishWidgetSnapshot(buildSnapshot({ now, currentStreak: stats.currentStreak, weeklyTarget: target, weekLoggedDates: week, recentActiveDates: [...recent, ...frozen] }));
+      const snapshot = buildSnapshot({ now, currentStreak: stats.currentStreak, weeklyTarget: target, weekLoggedDates: week, recentActiveDates: [...recent, ...frozen] });
+      publishWidgetSnapshot(snapshot);
+      publishWatchSnapshot(snapshot); // the Apple Watch app shows the same numbers (lib/watchSync.ts)
     } finally {
       running = null;
     }
@@ -35,7 +39,9 @@ export function refreshWidgetSnapshot(): Promise<void> {
 }
 
 export function clearWidgetSnapshot(): void {
-  if (widgetsSupported) publishWidgetSnapshot(null);
+  if (!widgetsSupported) return;
+  publishWidgetSnapshot(null);
+  publishWatchSnapshot(null);
 }
 
 export function useWidgetRefresh(signedIn: boolean, authLoading: boolean): void {

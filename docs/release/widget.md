@@ -58,5 +58,7 @@ It shows only what the app last saved, so it **updates when you open FitNFree** 
 * The streak runs out by the "last active day" rule; if you have freezes the server may keep a streak a little differently than this approximation, and the app corrects it the next time it is opened.
 * iPhone only for now. There is no Android widget.
 
-## Apple Watch: not built, and why
+## Apple Watch
+Now built on `feature/watch` (from this branch): see `docs/release/watch.md`. The notes below are why it was held back at first.
+
 A watch app is a separate native target with its own identifier, provisioning and signing, and it needs a way to get data from the phone (WatchConnectivity) or its own sign-in on the watch. That is several times the native code of this widget, none of which could be run here, so it should wait until this widget has built and worked on a real phone. When you want it, the sensible first version is a small watch app that shows the same streak and week from a phone-to-watch message, with no sign-in on the watch.

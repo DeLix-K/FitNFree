@@ -26,6 +26,12 @@ export async function hasLoggedToday(): Promise<boolean> {
 }
 
 export async function logWorkoutToday(durationMinutes?: number | null): Promise<void> {
+  return logWorkoutOn(todayLocalDate(), durationMinutes);
+}
+
+// Logs a workout for a given local day ("YYYY-MM-DD"). Logging the same day twice changes nothing. The Apple Watch uses this for the day the
+// person tapped "Log today's workout" (lib/watchRequests.ts), which can arrive after midnight.
+export async function logWorkoutOn(localDate: string, durationMinutes?: number | null): Promise<void> {
   const { data: userData } = await supabase.auth.getUser();
   const userId = userData.user?.id;
   if (!userId) throw new Error('Not signed in.');
@@ -35,7 +41,7 @@ export async function logWorkoutToday(durationMinutes?: number | null): Promise<
     .upsert(
       {
         user_id: userId,
-        logged_date: todayLocalDate(),
+        logged_date: localDate,
         duration_minutes: durationMinutes ?? null,
       },
       { onConflict: 'user_id,logged_date', ignoreDuplicates: true }
