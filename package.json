@@ -6,12 +6,14 @@
     "autolinking": {
       "android": {
         "exclude": [
-          "react-native-maps"
+          "react-native-maps",
+          "react-native-watch-connectivity"
         ]
       }
     }
   },
   "dependencies": {
+    "@bacons/apple-targets": "5.0.0",
     "@expo/metro-runtime": "~57.0.8",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@sentry/react-native": "~7.11.0",
@@ -45,6 +47,7 @@
     "react-native-svg": "15.15.4",
     "react-native-url-polyfill": "^4.0.0",
     "react-native-view-shot": "5.1.0",
+    "react-native-watch-connectivity": "2.0.0",
     "react-native-web": "^0.21.2",
     "react-native-webview": "13.16.1"
   },

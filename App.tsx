@@ -7,6 +7,8 @@ import SubscriptionPaywall from './components/SubscriptionPaywall';
 import { useAuth } from './hooks/useAuth';
 import { CartProvider } from './lib/cartContext';
 import { exchangeOuraCode } from './lib/oura';
+import { useWatchRequests } from './lib/watchRequests';
+import { useWidgetRefresh } from './lib/widgetRefresh';
 import { useWorkoutReminderRefresh } from './lib/workoutReminders';
 import { supabase } from './lib/supabase';
 import AuthScreen from './screens/AuthScreen';
@@ -34,6 +36,8 @@ export default function App() {
   const { session, loading } = useAuth();
   const [activeTab, setActiveTab] = useState<Tab>('dashboard');
   useWorkoutReminderRefresh(!!session, loading);
+  useWidgetRefresh(!!session, loading);
+  useWatchRequests(!!session, loading);
 
   // Detects the redirect back from a "reset password" email link — this app
   // has detectSessionInUrl: false (to avoid clashing with the Oura callback

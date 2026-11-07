@@ -10,6 +10,12 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.teamk.fitnfree",
+    "appleTeamId": "UKF5U499ZD",
+    "entitlements": {
+      "com.apple.security.application-groups": [
+        "group.com.teamk.fitnfree"
+      ]
+    },
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "NSSpeechRecognitionUsageDescription": "FitNFree uses speech recognition to turn your voice into text for your AI Coach.",
@@ -76,6 +82,7 @@
           "motionUsagePermission": "FitNFree does not use your motion activity. Apple requires this description because a location library used for outdoor tracking includes motion code."
         }
       ],
+      "@bacons/apple-targets",
       "./plugins/withoutPushEntitlement.js",
       [
         "expo-notifications",

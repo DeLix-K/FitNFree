@@ -36,6 +36,7 @@ import {
 import { fetchBodyStats } from '../lib/profile';
 import { recordActivityForActiveChallenges } from '../lib/challenges';
 import { dark } from '../lib/theme';
+import { refreshWidgetSnapshot } from '../lib/widgetRefresh';
 import { markTrainedToday } from '../lib/workoutReminders';
 import { supabase } from '../lib/supabase';
 import type { LeaderboardEntry } from '../lib/types';
@@ -195,6 +196,7 @@ export default function StreaksScreen() {
     try {
       await logWorkoutToday(durationMinutes);
       markTrainedToday().catch(() => {});
+      refreshWidgetSnapshot().catch(() => {});
       setDurationPickerOpen(false);
       await recordActivityForActiveChallenges().catch(() => {});
       const newLongest = await load();
