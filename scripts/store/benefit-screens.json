@@ -1,0 +1,45 @@
+{
+  "_note": "Store screenshots that sell the promise: 'Know exactly what to do today, with a realistic plan built around your time and your equipment.' Order = store order (the first two are what most people see). Only real screens from assets/store/source-screens/ and only features in the released version. *asterisks* = lime accent words. A screen that isn't captured yet is skipped with a warning.",
+  "shots": [
+    {
+      "screen": "coach-workout",
+      "headline": "Know exactly what to do *today*",
+      "sub": "Ask the AI Coach and get a workout that fits your day"
+    },
+    {
+      "screen": "equipment-scan",
+      "headline": "Built around the kit *you have*",
+      "sub": "Snap your equipment and get a workout for it"
+    },
+    {
+      "screen": "recalibrate-form",
+      "headline": "Your time. Your kit. *Your plan.*",
+      "sub": "Tell it how long you have, what you've got and how you feel"
+    },
+    {
+      "screen": "exercises",
+      "headline": "Home, gym or *outdoors*",
+      "sub": "Filter exercises by muscle, place and equipment"
+    },
+    {
+      "screen": "recalibrate",
+      "headline": "Tired or short on time? *Adjust it*",
+      "sub": "Recalibrate today's session to how you feel"
+    },
+    {
+      "screen": "form-check",
+      "headline": "Check your *form*",
+      "sub": "Photo feedback on your lifts"
+    },
+    {
+      "screen": "streaks",
+      "headline": "Stay *consistent*",
+      "sub": "Streaks and weekly targets you set yourself"
+    },
+    {
+      "screen": "nutrition",
+      "headline": "Food logged in *seconds*",
+      "sub": "Snap a meal, scan a barcode or just say it"
+    }
+  ]
+}
