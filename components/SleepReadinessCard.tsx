@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import { dark } from '../lib/theme';
 
 function readinessLabel(score: number | null): string {
@@ -49,8 +49,10 @@ export default function SleepReadinessCard({
       <View style={styles.card}>
         <Text style={styles.title}>Daily Readiness Score</Text>
         <Text style={styles.emptyText}>
-          Connect Oura under Profile → Connected Devices to see your real readiness score, HRV, and
-          resting heart rate — this app never estimates these without a real device.
+          {Platform.OS === 'web'
+            ? 'Connect Oura under Profile → Connected Devices to see your real readiness score, HRV, and resting heart rate'
+            : 'Connect Oura in the FitNFree web app (Profile → Connected Devices) to see your real readiness score, HRV, and resting heart rate here'}
+          {' '}— this app never estimates these without a real device.
         </Text>
       </View>
     );

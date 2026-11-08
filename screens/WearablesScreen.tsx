@@ -7,12 +7,10 @@ const REDIRECT_URI = Platform.OS === 'web' && typeof window !== 'undefined'
   ? window.location.origin
   : '';
 
-// Only Oura is a real, working integration today -- Fitbit closed self-serve
-// developer registration mid-build, and Apple Health / Google Health Connect
-// / Garmin all need native SDKs a managed Expo web build can't call. Listed
-// here honestly as "Coming soon" rather than faking a connected state.
-const COMING_SOON = ['Fitbit', 'Apple Health', 'Google Health Connect', 'Garmin'];
-
+// Only Oura is a real, working integration today, and it can only be CONNECTED from the web app (the sign-in
+// redirect is a web address). An already-connected ring still shows its numbers in the phone apps. The phone apps
+// say so plainly instead of showing a Connect button that cannot work (App Review 2.1 / 2.3.1), and they do not
+// list devices that are not available ("coming soon" lists are a common App Review rejection).
 export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
   const [data, setData] = useState<OuraData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -36,10 +34,7 @@ export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
   }, [load]);
 
   const handleConnect = () => {
-    if (Platform.OS !== 'web') {
-      setError('Connecting a wearable is currently only supported on the web version of the app.');
-      return;
-    }
+    if (Platform.OS !== 'web') return; // the button is not shown on the phone apps
     const state = Math.random().toString(36).slice(2);
     window.sessionStorage.setItem('oura_oauth_state', state);
     window.location.href = getOuraAuthUrl(REDIRECT_URI, state);
@@ -96,10 +91,12 @@ export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
               <Text style={styles.disconnect}>Disconnect</Text>
             )}
           </Pressable>
-        ) : (
+        ) : Platform.OS === 'web' ? (
           <Pressable style={styles.connectButton} onPress={handleConnect}>
             <Text style={styles.connectButtonText}>Connect</Text>
           </Pressable>
+        ) : (
+          <Text style={styles.deviceStatusMuted}>Connect on the web app</Text>
         )}
       </View>
 
@@ -131,19 +128,6 @@ export default function WearablesScreen({ onBack }: { onBack?: () => void }) {
           </View>
         </View>
       )}
-
-      <Text style={styles.sectionTitle}>More devices</Text>
-      {COMING_SOON.map((name) => (
-        <View key={name} style={styles.deviceRow}>
-          <View style={styles.deviceIconWrap}>
-            <Text style={styles.deviceIcon}>⌚</Text>
-          </View>
-          <View style={styles.deviceInfo}>
-            <Text style={styles.deviceName}>{name}</Text>
-            <Text style={styles.deviceStatusMuted}>Coming soon</Text>
-          </View>
-        </View>
-      ))}
     </View>
   );
 }
