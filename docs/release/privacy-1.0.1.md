@@ -16,6 +16,7 @@ What changed, and what it matches:
 | Export my data (Profile) | `docs/release/data-export.md` |
 | Reminders and rest timer are local notifications; settings stay on the device; no server push | `docs/release/workout-reminders.md`, `plugins/withoutPushEntitlement.js` |
 | Widget and Apple Watch: streak numbers only, between the user's own iPhone and watch, watch has no network, signing out clears them | `docs/release/widget.md`, `docs/release/watch.md` |
+| Trainer Tools: a trainer's private notes about clients (visible only to that trainer, deleted with the trainer account) | `docs/release/new-features-1.0.1.md` section 2 |
 | Coaching check-ins shared only with the linked trainer, stoppable, deleted with the account; trainer messages | `docs/release/client-checkin-forms.md`, `supabase/trainer_messaging.sql` |
 | Friends: opt-in, request and accept, only display name shown, no posts, block and report, leave deletes everything | `docs/release/friends-feed.md` |
 | Trainer profile is visible to other users | `trainer_profiles` readable by everyone (`schema.sql`) |
