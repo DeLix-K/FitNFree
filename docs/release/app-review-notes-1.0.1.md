@@ -42,7 +42,7 @@ WHERE TO FIND EACH NEW FEATURE
 
 GUIDELINE 1.2 (user content)
 - Friends: Block and Report on every friend (Progress > Friends). Blocking ends the friendship and hides both people from each other.
-- Check-ins: private between a trainer and a client who chose to link. The client can Stop sharing, delete check-ins and Report the trainer (More > Profile > My coaching check-ins). Trainer chat keeps Report and Block (Shop > Trainers > a trainer > Chat).
+- Check-ins: private between a trainer and a client who chose to link. The client can Stop sharing, delete check-ins and Report the trainer (More > Profile > My coaching check-ins). The trainer can Report or Stop each linked client (Shop > Trainer Tools > Forms > Clients). Trainer chat keeps Report and Block (Shop > Trainers > a trainer > Chat).
 - Names and bios are filtered. Reports reach the team; contact teamlix6@gmail.com.
 
 UNCHANGED FROM 1.0
@@ -67,7 +67,7 @@ UNCHANGED FROM 1.0
 
 1. **The paths are from the docs and code, not from walking through a TestFlight build.** Before pasting, open build 18 (or 19) and follow each path in this block once. Any path that is off by one tab is the usual cause of "feature not found".
 2. **The Apple Watch app has never run on a watch.** If it fails in TestFlight, delete the Watch bullet, or the build may be rejected under 2.1 (app completeness). The recording is your evidence.
-3. **Trainer side of check-ins:** a trainer can end a link, but I found no "report this client" button for the trainer. A client only appears under the name the trainer typed, and answers are private to the trainer, so the risk is low, but a reviewer applying 1.2 strictly might ask. Fast fix if you want it: add a Report control next to "End link" in the trainer's panel.
+3. **Trainer side of check-ins:** a Report button now sits next to Stop on every linked and ended client (added after this draft was first written; it is in code on `release/1.0.1` but NOT in build 18, so it needs build 19). A trainer never learns a client's account id, so the report names the link; you look the person up with `select client_user_id from trainer_client_links where id = '<uuid>'` in the SQL Editor. **The notes above say the trainer can Report a client, so submit build 19 or later (build 18 does not have the button). If you ever submit build 18, delete that sentence.**
 4. **Free text between people exists in two places:** trainer chat (already approved in 1.0) and check-in answers/feedback (new). Both are private 1:1. The notes say so.
 5. **The privacy policy and App Privacy answers must be updated first** (`docs/release/privacy-1.0.1.md`). Reviewers compare them against the notes.
 6. **What's New text and Apple Watch screenshots** are separate fields and are not covered here.
@@ -75,4 +75,4 @@ UNCHANGED FROM 1.0
 
 ## Length
 
-The "Paste this" block is **3,332 characters** with the placeholders unfilled (limit 4,000). Real emails and passwords add roughly 150 to 250, so there is room.
+The "Paste this" block is **3,424 characters** with the placeholders unfilled (limit 4,000). Real emails and passwords add roughly 150 to 250, so there is room.

@@ -15,3 +15,7 @@ order by created_at;
 
 -- Anything waiting more than 24 hours (Apple expects reports to be handled promptly):
 --   add:  where reviewed_at is null and created_at < now() - interval '24 hours'  to either half of the query above.
+
+-- A report whose target_id starts with 'checkin-link:' was filed by a TRAINER about a check-in client (a trainer never sees the client's account id).
+-- Look the person up (read-only), then act on their account in the dashboard:
+--   select client_user_id, trainer_id, label, status from trainer_client_links where id = '<the uuid after "checkin-link:">';

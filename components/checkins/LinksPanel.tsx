@@ -5,8 +5,14 @@ import type { CheckinApi } from '../../lib/checkinFormsApi';
 import { dark } from '../../lib/theme';
 import type { ToolsApi } from '../../lib/trainerToolsApi';
 import type { TrainerClient } from '../../lib/trainerTools';
+import ReportContentButton from '../ReportContentButton';
 import { Field } from '../trainerTools/Fields';
 import { confirmAction } from './confirm';
+
+// A trainer never learns who a client is in the app (the account id is hidden from them), so a report about a client names the LINK instead. The team
+// looks the person up from it: select client_user_id from trainer_client_links where id = '<the uuid after "checkin-link:">'. kind 'user' already exists
+// in content_reports, so this needs no database change. target_id is limited to 100 characters; this one is 49.
+export const checkinLinkReportTarget = (linkId: string): string => `checkin-link:${linkId}`;
 
 const day = (iso: string): string => new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
 
@@ -147,9 +153,12 @@ export default function LinksPanel({ api, tools, links, reload }: { api: Checkin
             <Text style={styles.rowName}>{l.label}</Text>
             <Text style={styles.rowMeta}>Linked {l.accepted_at ? day(l.accepted_at) : ''}</Text>
           </View>
-          <Pressable onPress={() => end(l)} accessibilityRole="button" accessibilityLabel={`Stop check-ins with ${l.label}`}>
-            <Text style={styles.danger}>Stop</Text>
-          </Pressable>
+          <View style={styles.actions}>
+            <ReportContentButton kind="user" targetId={checkinLinkReportTarget(l.id)} label={`${l.label} (check-in client)`} />
+            <Pressable onPress={() => end(l)} accessibilityRole="button" accessibilityLabel={`Stop check-ins with ${l.label}`}>
+              <Text style={styles.danger}>Stop</Text>
+            </Pressable>
+          </View>
         </View>
       ))}
 
@@ -179,6 +188,11 @@ export default function LinksPanel({ api, tools, links, reload }: { api: Checkin
               {l.ended_at ? ` · ${day(l.ended_at)}` : ''}
             </Text>
           </View>
+          {l.accepted_at ? (
+            <View style={styles.actions}>
+              <ReportContentButton kind="user" targetId={checkinLinkReportTarget(l.id)} label={`${l.label} (check-in client)`} />
+            </View>
+          ) : null}
         </View>
       ))}
     </View>
@@ -208,4 +222,5 @@ const styles = StyleSheet.create({
   rowName: { color: dark.text, fontSize: 15, fontWeight: '600' },
   rowMeta: { color: dark.textFaint, fontSize: 12, marginTop: 2 },
   danger: { color: dark.danger, fontSize: 13, fontWeight: '700', paddingLeft: 12 },
+  actions: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingLeft: 12 },
 });

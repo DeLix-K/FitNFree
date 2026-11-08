@@ -225,6 +225,23 @@ if (!PGlite) {
     assert.equal(next.content[0].kind, 'squad');
   });
 
+  await t('database: a trainer can report a check-in client by the link id (no account id needed, no schema change)', async () => {
+    const panel = readFileSync(ROOT + 'components/checkins/LinksPanel.tsx', 'utf8');
+    assert.ok(panel.includes('`checkin-link:${linkId}`'), 'the app builds the target as checkin-link:<link id>');
+    assert.equal((panel.match(/<ReportContentButton kind="user" targetId=\{checkinLinkReportTarget\(l\.id\)\}/g) || []).length, 2, 'on both the linked and the ended rows');
+    const linkId = '3f2b8c1e-7d4a-4e6b-9c0a-1b2c3d4e5f60';
+    const target = `checkin-link:${linkId}`;
+    assert.ok(target.length <= 100);
+    await as('authenticated', U[0], `insert into content_reports (reporter_user_id, kind, target_id, reported_user_id, label, reason) values ($1, 'user', $2, null, 'Sam J (check-in client)', 'abusive message')`, [U[0], target]);
+    const r = (await as('service_role', null, 'select public.unsent_reports(10) as v'))[0].v;
+    const row = r.content.find((x) => x.target_id === target);
+    assert.ok(row, 'the report reaches the daily digest');
+    assert.equal(row.kind, 'user');
+    assert.ok(!('reporter_user_id' in row));
+    // the person filing it still cannot read reports back
+    await assert.rejects(() => as('authenticated', U[0], 'select * from content_reports'), /permission denied/);
+  });
+
   await t('database: the action column only accepts the listed values', async () => {
     await assert.rejects(() => db.query(`update content_reports set action = 'banned forever'`), /content_reports_action_check/);
     await db.query(`update content_reports set action = 'removed', reviewed_at = now() where kind = 'user'`);
