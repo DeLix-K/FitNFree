@@ -10,7 +10,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.teamk.fitnfree",
-      "buildNumber": "18",
+      "buildNumber": "19",
       "appleTeamId": "UKF5U499ZD",
       "privacyManifests": {
         "NSPrivacyAccessedAPITypes": [
