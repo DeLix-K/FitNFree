@@ -133,7 +133,9 @@ Deno.serve(async (req) => {
         cryptoProvider
       );
     } catch (err) {
-      return new Response(`Invalid signature: ${err}`, { status: 400 });
+      // Log the detail for us; tell the caller nothing about why it failed.
+      console.error('stripe-webhook: signature verification failed', String(err));
+      return new Response('Invalid signature.', { status: 400 });
     }
 
     const adminClient = createClient(
@@ -178,8 +180,23 @@ Deno.serve(async (req) => {
     console.log(`stripe-webhook event received: ${event.type} (id: ${event.id})`);
 
     switch (event.type) {
-      case 'checkout.session.completed': {
+      // async_payment_succeeded is the follow-up for delayed payment methods
+      // (bank debits etc.): Stripe sends "completed" first with
+      // payment_status "unpaid", and only later tells us the money arrived.
+      case 'checkout.session.completed':
+      case 'checkout.session.async_payment_succeeded': {
         const session = event.data.object as Stripe.Checkout.Session;
+
+        // Never fulfil anything (merch shipment, plan delivery, premium) on a
+        // session whose money has not arrived. "no_payment_required" covers
+        // free trials and 100%-off coupons.
+        if (session.payment_status !== 'paid' && session.payment_status !== 'no_payment_required') {
+          console.log(
+            'checkout session not paid yet, skipping fulfilment',
+            JSON.stringify({ sessionId: session.id, paymentStatus: session.payment_status, eventType: event.type })
+          );
+          break;
+        }
 
         if (session.metadata?.fitnfree_order_type === 'trainer_plan') {
           const { data, error, count } = await adminClient
@@ -331,7 +348,10 @@ Deno.serve(async (req) => {
       headers: { 'Content-Type': 'application/json' },
     });
   } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
+    // A 5xx makes Stripe retry, which is what we want. Keep the detail in our
+    // logs, not in the response.
+    console.error('stripe-webhook: unhandled error', String(err));
+    return new Response(JSON.stringify({ error: 'Webhook processing failed.' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });

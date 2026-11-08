@@ -24,6 +24,18 @@ const ENTITLED_STATES = new Set([
   'SUBSCRIPTION_STATE_CANCELED',
 ]);
 
+// Compares the shared secret without stopping at the first wrong character,
+// so response timing does not reveal how much of a guess was right.
+function secretMatches(given: string | null, expected: string): boolean {
+  if (given === null) return false;
+  const a = new TextEncoder().encode(given);
+  const b = new TextEncoder().encode(expected);
+  let diff = a.length ^ b.length;
+  const len = Math.max(a.length, b.length);
+  for (let i = 0; i < len; i++) diff |= (a[i] ?? 0) ^ (b[i] ?? 0);
+  return diff === 0;
+}
+
 function base64UrlEncode(bytes: ArrayBuffer | Uint8Array): string {
   return btoa(String.fromCharCode(...new Uint8Array(bytes)))
     .replace(/\+/g, '-')
@@ -101,7 +113,7 @@ Deno.serve(async (req) => {
   const ack = () => new Response(JSON.stringify({ received: true }), { status: 200 });
 
   const secret = Deno.env.get('GOOGLE_RTDN_SECRET');
-  if (!secret || new URL(req.url).searchParams.get('token') !== secret) {
+  if (!secret || !secretMatches(new URL(req.url).searchParams.get('token'), secret)) {
     return new Response('Unauthorized.', { status: 401 });
   }
 
@@ -171,6 +183,6 @@ Deno.serve(async (req) => {
     // A 5xx makes Pub/Sub redeliver, which is what we want for transient
     // failures (Google API hiccup, DB blip).
     console.error(err);
-    return new Response(JSON.stringify({ error: String(err) }), { status: 500 });
+    return new Response(JSON.stringify({ error: 'Notification processing failed.' }), { status: 500 });
   }
 });
