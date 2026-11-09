@@ -37,6 +37,7 @@
     },
     "android": {
       "package": "com.teamk.fitnfree",
+      "versionCode": 7,
       "adaptiveIcon": {
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
