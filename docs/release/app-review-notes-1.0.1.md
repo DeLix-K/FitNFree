@@ -1,19 +1,22 @@
 # App Review notes for 1.0.1
 
-Drafted 2026-11-08. Paste the block under "Paste this" into App Store Connect > the 1.0.1 version > **App Review Information > Notes** (limit **4,000 characters**; this block is measured, see the end). Fill in the four accounts first, then replace every `<...>` placeholder. **Type the passwords into App Store Connect yourself; do not paste them into chat or into this file.**
+Drafted 2026-11-08. Paste the block under "Paste this" into App Store Connect > the 1.0.1 version > **App Review Information > Notes** (limit **4,000 characters**; this block is measured, see the end). Set up the three accounts first, then replace the two password placeholders (`<SANDBOX1_PASSWORD>`, `<SANDBOX2_PASSWORD>`). **Type the passwords into App Store Connect yourself; do not paste them into chat or into this file.**
 
 ## What you must prepare before pasting (I cannot do these)
 
 | # | Account | What it needs | Why a reviewer needs it |
 |---|---|---|---|
-| 1 | **Main demo, Premium** (already in App Store Connect: `teamlixpro@icloud.com`) | Add it to the Friends feed with account 4 (below). Keep Premium on | Premium, Body, Records, Streaks, Coach, export |
-| 2 | **Trainer** | A normal account that has registered as a trainer (Shop > Trainers > become a trainer). Create a check-in form (Trainer Tools > Forms) and one invite code that was used by account 3 | Without a trainer profile, Trainer Tools does not appear and the reviewer cannot see it |
-| 3 | **Client** | Linked to account 2 by typing its code. Send one check-in and let the trainer reply | Shows My coaching check-ins with data in it |
-| 4 | **Friend** | Friends switched ON for both accounts 1 and 4; request sent and accepted; log a workout on each so the feed has updates | Without two accounts already friends, the reviewer sees an empty Friends tab |
+Decided 2026-11-12: **three accounts**, one account can play two roles.
 
-Also: log one workout and add one body-log weight on account 1 so Streaks, Records, Body and the widget are not empty. Apple's reviewers rarely have time for setup, so anything they must create themselves tends to be reported as "feature not found".
+| # | Account | Role | What it needs | Why a reviewer needs it |
+|---|---|---|---|---|
+| 1 | `teamlixpro@icloud.com` (already in App Store Connect) | **Main demo, Premium**, and a friend of account 3 | Premium on. Friends switched ON, request to account 3 accepted. One logged workout and one body-log weight, so Streaks, Records, Body and the widget are not empty | Premium, Body, Records, Streaks, Coach, export, Friends |
+| 2 | `teamlix6sandbox1@gmail.com` | **Trainer** | Registered as a trainer (Shop > Trainers > become a trainer). A check-in form (Trainer Tools > Forms) and one invite code that account 3 uses | Without a trainer profile, Trainer Tools does not appear |
+| 3 | `teamlix6sandbox2@gmail.com` | **Client** and a friend of account 1 | Linked to account 2 by typing its code. One check-in sent and one trainer reply. Friends ON, friends with account 1, one logged workout | Shows My coaching check-ins and the Friends feed with data in them |
 
-If you would rather not keep four logins, the minimum is: account 1 (Premium, already friends with account 4) and account 2 + 3 (trainer + linked client). That is still four accounts; there is no honest way to show Friends and check-ins with fewer.
+Earlier I wrote that four accounts were the minimum. That was wrong: Friends needs two accounts and check-ins need two, and account 3 sits in both pairs, so three are enough. Apple's reviewers rarely have time for setup, so anything they must create themselves tends to be reported as "feature not found".
+
+Passwords: type them into App Store Connect yourself. Never paste them into chat or into this file.
 
 Also **attach**: a short screen recording on a real iPhone showing Friends (request and accept), a check-in being sent and read, and the Apple Watch screen. Apple reads recordings faster than text, and a recording is the best protection if the watch app is hard for them to see.
 
@@ -23,10 +26,9 @@ Also **attach**: a short screen recording on a real iPhone showing Friends (requ
 VERSION 1.0.1 adds features only; the subscription, AI-consent and moderation behaviour approved in 1.0 (build 17) are unchanged.
 
 ACCOUNTS (sign in on the login screen)
-1. Main demo, Premium: the sign-in fields above. Friends with account 4.
-2. Trainer: <TRAINER_EMAIL> / <TRAINER_PASSWORD>. Has a trainer profile, so Shop > Trainer Tools shows. Linked to account 3.
-3. Client: <CLIENT_EMAIL> / <CLIENT_PASSWORD>. Linked to the trainer; a check-in and reply are already there.
-4. Friend: <FRIEND_EMAIL> / <FRIEND_PASSWORD>. Already friends with account 1, with updates in the feed.
+1. Main demo, Premium: the sign-in fields above. Friends with account 3.
+2. Trainer: teamlix6sandbox1@gmail.com / <SANDBOX1_PASSWORD>. Has a trainer profile, so Shop > Trainer Tools shows. Linked to account 3.
+3. Client and friend: teamlix6sandbox2@gmail.com / <SANDBOX2_PASSWORD>. Linked to the trainer, with a check-in and reply already there. Already friends with account 1, with updates in the feed.
 
 WHERE TO FIND EACH NEW FEATURE
 - Body log: Progress > Body. Weight, body fat and measurements are saved to the account (visible only to the user). Progress photos stay on the phone and are never uploaded.
@@ -75,4 +77,4 @@ UNCHANGED FROM 1.0
 
 ## Length
 
-The "Paste this" block is **3,424 characters** with the placeholders unfilled (limit 4,000). Real emails and passwords add roughly 150 to 250, so there is room.
+The "Paste this" block is **3,415 characters** with the two password placeholders unfilled (limit 4,000). Real passwords add roughly 30 to 50, so there is room.
